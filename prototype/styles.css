@@ -428,27 +428,31 @@ body {
 }
 
 /* Carousel */
-.carousel-container {
+.carousel-wrapper {
     width: 100%;
     overflow: hidden;
     flex: 1;
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .carousel-track {
     display: flex;
     width: 300%;
     transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
+    height: 100%;
 }
 
 .carousel-card {
     width: 33.333%;
     flex-shrink: 0;
-    padding: 0 var(--space-6);
+    padding: 0 var(--space-8);
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
 
 .carousel-dots {
@@ -498,6 +502,76 @@ body {
 
 .ticket-info-col {
     text-align: center;
+}
+
+/* Spots Grid */
+.spots-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+}
+
+.spot-card {
+    aspect-ratio: 1;
+    background: linear-gradient(145deg, var(--bg-card), var(--bg-elevated));
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    border: 2px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    transition: all 0.3s var(--ease-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.spot-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255, 184, 0, 0.03), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.spot-card.focused {
+    border-color: var(--accent-yellow);
+    box-shadow: 0 0 0 2px var(--accent-yellow-glow),
+                0 8px 24px rgba(255, 184, 0, 0.15);
+    transform: scale(1.03);
+}
+
+.spot-card.focused::before {
+    opacity: 1;
+}
+
+.spot-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--text-secondary);
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.spot-card.focused .spot-icon {
+    color: var(--accent-yellow);
+    transform: scale(1.1);
+}
+
+.spot-name {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.spot-distance {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
 }
 
 /* Grid Layout */
@@ -712,49 +786,77 @@ body {
 }
 
 /* Album Art */
-.album-art {
-    width: 100%;
-    aspect-ratio: 1;
-    background: linear-gradient(145deg, var(--bg-elevated), var(--bg-card));
+.album-square {
+    width: 140px;
+    height: 140px;
     border-radius: var(--radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: var(--space-6);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.05);
-}
-
-.album-art::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(circle at 30% 30%, var(--accent-yellow-glow), transparent 60%);
-}
-
-.album-placeholder {
-    font-size: 80px;
-    color: var(--accent-yellow);
-    position: relative;
-    z-index: 1;
-    filter: drop-shadow(0 4px 8px rgba(255, 184, 0, 0.3));
-}
-
-.album-art-compact {
-    width: 100%;
-    height: 180px;
-    background: linear-gradient(145deg, var(--bg-elevated), var(--bg-card));
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: var(--space-4) 0;
     box-shadow: 0 8px 24px rgba(0,0,0,0.5),
                 inset 0 1px 0 rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.05);
+    flex-shrink: 0;
+}
+
+.volume-bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 16px;
+}
+
+.volume-bar {
+    width: 3px;
+    height: 40%;
+    background: var(--bg-border);
+    border-radius: 2px;
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.volume-bar:nth-child(2) { height: 50%; }
+.volume-bar:nth-child(3) { height: 60%; }
+.volume-bar:nth-child(4) { height: 70%; }
+.volume-bar:nth-child(5) { height: 80%; }
+.volume-bar:nth-child(6) { height: 90%; }
+.volume-bar:nth-child(7) { height: 100%; }
+.volume-bar:nth-child(8) { height: 95%; }
+.volume-bar:nth-child(9) { height: 85%; }
+.volume-bar:nth-child(10) { height: 75%; }
+
+.volume-bar.active {
+    background: var(--accent-yellow);
+}
+
+.music-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: var(--space-6);
+    padding: var(--space-4);
+    background: var(--bg-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.music-control-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.music-control-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
 }
 
 /* Track Info */

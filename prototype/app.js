@@ -328,7 +328,22 @@ class TravelDevice {
                 <div class="screen-title" style="margin-bottom: var(--space-8);">Travel Companion</div>
 
                 <div class="home-grid">
-                    <div class="home-tile focused" data-screen="tickets">
+                    <div class="home-tile focused" data-screen="navigation">
+                        <i data-lucide="navigation" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Navigate</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="restaurant">
+                        <i data-lucide="utensils" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Food</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="music">
+                        <i data-lucide="music" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Music</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="tickets">
                         <i data-lucide="ticket" style="width: 48px; height: 48px;"></i>
                         <div class="tile-label">Tickets</div>
                     </div>
@@ -338,24 +353,9 @@ class TravelDevice {
                         <div class="tile-label">Explore</div>
                     </div>
 
-                    <div class="home-tile" data-screen="restaurant">
-                        <i data-lucide="utensils" style="width: 48px; height: 48px;"></i>
-                        <div class="tile-label">Food</div>
-                    </div>
-
-                    <div class="home-tile" data-screen="navigation">
-                        <i data-lucide="navigation" style="width: 48px; height: 48px;"></i>
-                        <div class="tile-label">Navigate</div>
-                    </div>
-
                     <div class="home-tile" data-screen="alert">
                         <i data-lucide="shield-alert" style="width: 48px; height: 48px;"></i>
                         <div class="tile-label">Alerts</div>
-                    </div>
-
-                    <div class="home-tile" data-screen="music">
-                        <i data-lucide="music" style="width: 48px; height: 48px;"></i>
-                        <div class="tile-label">Music</div>
                     </div>
                 </div>
 
@@ -393,7 +393,7 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                const screens = ['tickets', 'explore', 'restaurant', 'navigation', 'alert', 'music'];
+                const screens = ['navigation', 'restaurant', 'music', 'tickets', 'explore', 'alert'];
                 this.navigateTo(screens[this.focusedIndex]);
                 break;
         }
@@ -406,13 +406,12 @@ class TravelDevice {
     render_tickets() {
         setTimeout(() => lucide.createIcons(), 0);
         const activeCard = this.ticketCard || 0;
-        const cards = ['boarding', 'metro', 'payment'];
 
         return `
             <div class="screen-content screen-no-scroll">
                 <div class="context-label">YOUR TICKETS</div>
 
-                <div class="carousel-container">
+                <div class="carousel-wrapper">
                     <div class="carousel-track" style="transform: translateX(-${activeCard * 100}%);">
                         ${this.renderBoardingCard()}
                         ${this.renderMetroCard()}
@@ -680,39 +679,59 @@ class TravelDevice {
     // ================================
 
     render_explore() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
             <div class="screen-content">
                 <div class="context-label">NEARBY • SHOREDITCH</div>
-                <div class="screen-title">Spots Near You</div>
+                <div class="screen-title" style="margin-bottom: var(--space-6);">Spots Near You</div>
 
-                <div class="card focused">
-                    <div style="width: 100%; height: 120px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary);">
-                        📸
+                <div class="spots-grid">
+                    <div class="spot-card focused">
+                        <i data-lucide="book-open" class="spot-icon"></i>
+                        <div class="spot-name">Old Bookshop</div>
+                        <div class="spot-distance">0.3 km</div>
                     </div>
-                    <div class="card-title">The Old Bookshop</div>
-                    <div class="card-meta">
-                        <span class="tag popular">BOOKSTORE</span>
-                        <span>0.3 km</span>
-                    </div>
-                    <div style="color: var(--accent-yellow); font-size: 13px; margin-bottom: var(--space-2);">
-                        ★★★★ Loved by locals
-                    </div>
-                    <div class="card-body" style="font-style: italic;">
-                        "Hidden gem with rare travel books and cozy reading nook"
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div style="width: 100%; height: 120px; background: var(--bg-elevated); border-radius: var(--radius-md); margin-bottom: var(--space-3); display: flex; align-items: center; justify-content: center; color: var(--text-tertiary);">
-                        📸
+                    <div class="spot-card">
+                        <i data-lucide="coffee" class="spot-icon"></i>
+                        <div class="spot-name">Silo Café</div>
+                        <div class="spot-distance">0.6 km</div>
                     </div>
-                    <div class="card-title">Silo Café</div>
-                    <div class="card-meta">
-                        <span class="tag popular">CAFE</span>
-                        <span>0.6 km</span>
+
+                    <div class="spot-card">
+                        <i data-lucide="palette" class="spot-icon"></i>
+                        <div class="spot-name">Art Gallery</div>
+                        <div class="spot-distance">0.8 km</div>
                     </div>
-                    <div style="color: var(--accent-yellow); font-size: 13px;">
-                        ★★★★★ Popular spot
+
+                    <div class="spot-card">
+                        <i data-lucide="shopping-bag" class="spot-icon"></i>
+                        <div class="spot-name">Vintage Shop</div>
+                        <div class="spot-distance">1.2 km</div>
+                    </div>
+
+                    <div class="spot-card">
+                        <i data-lucide="tree-pine" class="spot-icon"></i>
+                        <div class="spot-name">City Park</div>
+                        <div class="spot-distance">1.5 km</div>
+                    </div>
+
+                    <div class="spot-card">
+                        <i data-lucide="landmark" class="spot-icon"></i>
+                        <div class="spot-name">Museum</div>
+                        <div class="spot-distance">1.8 km</div>
+                    </div>
+
+                    <div class="spot-card">
+                        <i data-lucide="beer" class="spot-icon"></i>
+                        <div class="spot-name">Craft Brewery</div>
+                        <div class="spot-distance">2.1 km</div>
+                    </div>
+
+                    <div class="spot-card">
+                        <i data-lucide="camera" class="spot-icon"></i>
+                        <div class="spot-name">Photo Walk</div>
+                        <div class="spot-distance">2.4 km</div>
                     </div>
                 </div>
 
@@ -722,14 +741,28 @@ class TravelDevice {
     }
 
     handle_explore(action) {
-        const cards = document.querySelectorAll('.card');
+        const spots = document.querySelectorAll('.spot-card');
 
         switch(action) {
             case 'roll-up':
-                this.updateFocus(cards, -1);
+                if (this.focusedIndex >= 2) {
+                    this.updateFocus(spots, -2);
+                }
                 break;
             case 'roll-down':
-                this.updateFocus(cards, 1);
+                if (this.focusedIndex < spots.length - 2) {
+                    this.updateFocus(spots, 2);
+                }
+                break;
+            case 'roll-left':
+                if (this.focusedIndex % 2 === 1) {
+                    this.updateFocus(spots, -1);
+                }
+                break;
+            case 'roll-right':
+                if (this.focusedIndex % 2 === 0 && this.focusedIndex < spots.length - 1) {
+                    this.updateFocus(spots, 1);
+                }
                 break;
             case 'double-press':
                 this.goHome();
@@ -1008,47 +1041,69 @@ class TravelDevice {
         setTimeout(() => lucide.createIcons(), 0);
         const isPlaying = this.musicPlaying !== false;
         const currentTrack = this.currentTrack || 0;
+        const volume = this.musicVolume || 7;
         const tracks = [
-            { title: 'Blinded by the Lights', artist: 'The Streets', duration: '3:52' },
-            { title: 'Electric Feel', artist: 'MGMT', duration: '4:02' },
-            { title: 'Take Me Out', artist: 'Franz Ferdinand', duration: '3:57' }
+            { title: 'Blinded by the Lights', artist: 'The Streets', duration: '3:52', color: '#FF6B6B' },
+            { title: 'Electric Feel', artist: 'MGMT', duration: '4:02', color: '#4ECDC4' },
+            { title: 'Take Me Out', artist: 'Franz Ferdinand', duration: '3:57', color: '#FFD93D' }
         ];
         const track = tracks[currentTrack % tracks.length];
-        const icon = isPlaying ? 'play-circle' : 'pause-circle';
+        const icon = isPlaying ? 'pause' : 'play';
 
         return `
             <div class="screen-content screen-no-scroll">
-                <div class="screen-title" style="margin-bottom: var(--space-4);">Now Playing</div>
-
-                <div class="album-art-compact">
-                    <i data-lucide="${icon}" style="width: 64px; height: 64px; color: var(--accent-yellow);"></i>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6);">
+                    <div class="screen-title" style="margin: 0;">Music</div>
+                    <div style="display: flex; align-items: center; gap: var(--space-2);">
+                        <i data-lucide="volume-2" style="width: 16px; height: 16px; color: var(--text-tertiary);"></i>
+                        <div class="volume-bars">
+                            ${Array.from({length: 10}, (_, i) => `
+                                <div class="volume-bar ${i < volume ? 'active' : ''}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
                 </div>
 
-                <div class="track-info">
-                    <div class="track-title" style="font-size: 22px;">${track.title}</div>
-                    <div class="track-artist" style="font-size: 15px;">${track.artist}</div>
+                <div style="display: flex; gap: var(--space-6); align-items: center;">
+                    <div class="album-square" style="background: linear-gradient(145deg, ${track.color}33, ${track.color}11);">
+                        <i data-lucide="disc-3" style="width: 64px; height: 64px; color: ${track.color};"></i>
+                    </div>
+
+                    <div style="flex: 1;">
+                        <div class="track-title" style="font-size: 24px; margin-bottom: var(--space-2);">${track.title}</div>
+                        <div class="track-artist" style="font-size: 16px;">${track.artist}</div>
+                        <div style="font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-2);">
+                            Track ${currentTrack + 1} / ${tracks.length}
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin-top: var(--space-4);">
-                    <div class="progress-bar">
+                <div style="margin-top: var(--space-6);">
+                    <div class="progress-bar" style="height: 6px;">
                         <div class="progress-fill" style="width: 40%;"></div>
                     </div>
-                    <div class="time-display">
+                    <div class="time-display" style="margin-top: var(--space-2);">
                         <span>1:24</span>
                         <span>${track.duration}</span>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: var(--space-5);">
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-1);">
-                        <i data-lucide="list-music" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Travel Mix
+                <div class="music-controls">
+                    <div class="music-control-hint">
+                        <i data-lucide="skip-back" style="width: 20px; height: 20px;"></i>
+                        <span>Roll Left</span>
                     </div>
-                    <div style="font-size: 12px; color: var(--text-tertiary);">
-                        Track ${currentTrack + 1} of ${tracks.length}
+                    <div class="music-control-main">
+                        <i data-lucide="${icon}" style="width: 48px; height: 48px; color: var(--accent-yellow);"></i>
+                        <span>Click</span>
+                    </div>
+                    <div class="music-control-hint">
+                        <i data-lucide="skip-forward" style="width: 20px; height: 20px;"></i>
+                        <span>Roll Right</span>
                     </div>
                 </div>
 
-                <div class="hint-text" style="margin-top: var(--space-5);">Roll left/right to skip • Click to ${isPlaying ? 'pause' : 'play'}</div>
+                <div class="hint-text">Roll up/down for volume • Double-click for home</div>
             </div>
         `;
     }
@@ -1064,6 +1119,16 @@ class TravelDevice {
                 this.currentTrack = Math.max(0, (this.currentTrack || 0) - 1);
                 this.renderScreen('music');
                 this.showFeedback('<i data-lucide="skip-back"></i> Previous track', 1200);
+                break;
+            case 'roll-up':
+                this.musicVolume = Math.min(10, (this.musicVolume || 7) + 1);
+                this.renderScreen('music');
+                this.showFeedback(`<i data-lucide="volume-2"></i> Volume ${this.musicVolume}`, 800);
+                break;
+            case 'roll-down':
+                this.musicVolume = Math.max(0, (this.musicVolume || 7) - 1);
+                this.renderScreen('music');
+                this.showFeedback(`<i data-lucide="volume-${this.musicVolume === 0 ? 'x' : '1'}"></i> Volume ${this.musicVolume}`, 800);
                 break;
             case 'press':
                 this.musicPlaying = !this.musicPlaying;
