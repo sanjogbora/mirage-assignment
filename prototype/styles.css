@@ -1164,6 +1164,51 @@ body {
     color: var(--bg-deep);
     box-shadow: 0 4px 12px rgba(255, 184, 0, 0.4);
     animation: pulse 2s ease-in-out infinite;
+    overflow: hidden;
+}
+
+.ai-listening-wave {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    height: 100%;
+}
+
+.ai-listening-wave span {
+    width: 3px;
+    background: var(--bg-deep);
+    border-radius: 2px;
+    animation: listening-wave 1s ease-in-out infinite;
+}
+
+.ai-listening-wave span:nth-child(1) {
+    height: 30%;
+    animation-delay: 0s;
+}
+
+.ai-listening-wave span:nth-child(2) {
+    height: 50%;
+    animation-delay: 0.1s;
+}
+
+.ai-listening-wave span:nth-child(3) {
+    height: 70%;
+    animation-delay: 0.2s;
+}
+
+.ai-listening-wave span:nth-child(4) {
+    height: 40%;
+    animation-delay: 0.3s;
+}
+
+@keyframes listening-wave {
+    0%, 100% {
+        transform: scaleY(1);
+    }
+    50% {
+        transform: scaleY(1.5);
+    }
 }
 
 @keyframes pulse {
@@ -1223,12 +1268,69 @@ body {
     min-height: 80px;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .ai-text {
     font-size: 14px;
     color: var(--text-primary);
     line-height: 1.6;
+}
+
+.ai-speaking-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.ai-wave-bars {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    height: 24px;
+}
+
+.ai-wave-bars span {
+    width: 3px;
+    background: var(--accent-yellow);
+    border-radius: 2px;
+    animation: voice-wave 0.8s ease-in-out infinite;
+}
+
+.ai-wave-bars span:nth-child(1) {
+    height: 40%;
+    animation-delay: 0s;
+}
+
+.ai-wave-bars span:nth-child(2) {
+    height: 70%;
+    animation-delay: 0.1s;
+}
+
+.ai-wave-bars span:nth-child(3) {
+    height: 100%;
+    animation-delay: 0.2s;
+}
+
+.ai-wave-bars span:nth-child(4) {
+    height: 60%;
+    animation-delay: 0.3s;
+}
+
+.ai-wave-bars span:nth-child(5) {
+    height: 80%;
+    animation-delay: 0.4s;
+}
+
+@keyframes voice-wave {
+    0%, 100% {
+        transform: scaleY(1);
+        opacity: 0.7;
+    }
+    50% {
+        transform: scaleY(1.3);
+        opacity: 1;
+    }
 }
 
 .ai-typing-indicator {
@@ -1274,12 +1376,20 @@ body {
 .ai-suggestion {
     padding: var(--space-2) var(--space-4);
     background: var(--bg-elevated);
-    border: 1px solid var(--bg-border);
+    border: 2px solid var(--bg-border);
     border-radius: var(--radius-full);
     font-size: 12px;
     color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s var(--ease-smooth);
+}
+
+.ai-suggestion.focused {
+    border-color: var(--accent-yellow);
+    background: rgba(255, 184, 0, 0.1);
+    color: var(--accent-yellow);
+    box-shadow: 0 0 0 2px var(--accent-yellow-glow);
+    transform: scale(1.05);
 }
 
 .ai-suggestion:hover {

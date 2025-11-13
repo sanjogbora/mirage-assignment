@@ -153,13 +153,13 @@ class TravelDevice {
             pressStartTime = Date.now();
             longPressTriggered = false;
 
-            // Set long-press timeout (800ms)
+            // Set long-press timeout (2000ms = 2 seconds)
             longPressTimeout = setTimeout(() => {
                 if (isDragging && Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
                     longPressTriggered = true;
                     this.handleBallAction('long-press');
                 }
-            }, 800);
+            }, 2000);
         });
 
         // Mouse move
@@ -271,6 +271,12 @@ class TravelDevice {
     // ================================
 
     handleBallAction(action) {
+        // If AI is active, route to AI handler
+        if (this.aiActive) {
+            this.handle_ai(action);
+            return;
+        }
+
         const handler = this[`handle_${this.currentScreen.replace(/-/g, '_')}`];
         if (handler) {
             handler.call(this, action);
@@ -415,6 +421,9 @@ class TravelDevice {
                 const screens = ['navigation', 'restaurant', 'music', 'tickets', 'explore', 'alert'];
                 this.navigateTo(screens[this.focusedIndex]);
                 break;
+            case 'long-press':
+                this.activateAIAssistant();
+                break;
         }
     }
 
@@ -425,7 +434,8 @@ class TravelDevice {
     render_tickets() {
         setTimeout(() => lucide.createIcons(), 0);
         const activeCard = this.ticketCard || 0;
-        const translatePercent = activeCard * 33.333;
+        // Each card takes 100% of wrapper width, so translate by 100% * card index
+        const translatePercent = activeCard * 100;
 
         return `
             <div class="screen-content screen-no-scroll">
@@ -1035,6 +1045,13 @@ class TravelDevice {
                     setTimeout(() => lucide.createIcons(), 10);
                 }
                 break;
+            case 'press':
+                this.showFeedback('<i data-lucide="navigation-2"></i> Re-centering route', 1500);
+                setTimeout(() => lucide.createIcons(), 10);
+                break;
+            case 'long-press':
+                this.activateAIAssistant();
+                break;
             case 'double-press':
                 if (this.map) {
                     this.map.remove();
@@ -1232,7 +1249,7 @@ class TravelDevice {
             'restaurant': [
                 "The Pappardelle al Funghi is their signature dish - it's been featured in Time Out London.",
                 "I can translate the menu to any language or explain ingredients you're allergic to.",
-                "Would you like me to take a photo of your meal and post it to your food diary?"
+                "Based on reviews, this dish pairs perfectly with their house Chianti wine."
             ],
             'music': [
                 "This track is from 'Original Pirate Material' (2002) - a seminal UK garage album.",
@@ -1257,6 +1274,10 @@ class TravelDevice {
             "I have access to local knowledge, reviews, and real-time information."
         ];
 
+        // Set AI active state
+        this.aiActive = true;
+        this.aiFocusedButton = 0;
+
         // Show AI overlay with animated typing effect
         this.showAIOverlay(messages);
     }
@@ -1277,30 +1298,32 @@ class TravelDevice {
             <div class="ai-container">
                 <div class="ai-header">
                     <div class="ai-avatar">
-                        <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
+                        <div class="ai-listening-wave">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
                     </div>
                     <div class="ai-title">
                         <div class="ai-name">AI Assistant</div>
-                        <div class="ai-status">Listening...</div>
+                        <div class="ai-status">Voice-first • Listening...</div>
                     </div>
-                    <button class="ai-close" onclick="device.closeAI()">
-                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-                    </button>
                 </div>
 
                 <div class="ai-message">
-                    <div class="ai-typing-indicator">
-                        <span></span><span></span><span></span>
+                    <div class="ai-speaking-indicator">
+                        <i data-lucide="mic" style="width: 20px; height: 20px; color: var(--accent-yellow);"></i>
+                        <div class="ai-wave-bars">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="ai-suggestions">
-                    <div class="ai-suggestion">Tell me more</div>
+                    <div class="ai-suggestion focused">Tell me more</div>
                     <div class="ai-suggestion">Show alternatives</div>
                     <div class="ai-suggestion">Navigate there</div>
                 </div>
 
-                <div class="ai-hint">Click anywhere to close • This is a demo</div>
+                <div class="ai-hint">Roll to navigate • Click to select • Double-click to close</div>
             </div>
         `;
 
@@ -1311,17 +1334,12 @@ class TravelDevice {
                 lucide.createIcons();
             }
 
-            // Replace typing indicator with actual message after delay
+            // Replace speaking indicator with actual message after delay
             setTimeout(() => {
                 const messageEl = overlay.querySelector('.ai-message');
                 messageEl.innerHTML = `<div class="ai-text">${randomMessage}</div>`;
             }, 1500);
         }, 50);
-
-        // Auto-close after 8 seconds
-        setTimeout(() => {
-            this.closeAI();
-        }, 8000);
     }
 
     closeAI() {
@@ -1333,6 +1351,38 @@ class TravelDevice {
                     overlay.parentNode.removeChild(overlay);
                 }
             }, 300);
+        }
+        this.aiActive = false;
+        this.aiFocusedButton = 0;
+    }
+
+    handle_ai(action) {
+        const buttons = document.querySelectorAll('.ai-suggestion');
+        const buttonTexts = ['Tell me more', 'Show alternatives', 'Navigate there'];
+
+        switch(action) {
+            case 'roll-left':
+            case 'roll-up':
+                if (this.aiFocusedButton > 0) {
+                    buttons[this.aiFocusedButton].classList.remove('focused');
+                    this.aiFocusedButton--;
+                    buttons[this.aiFocusedButton].classList.add('focused');
+                }
+                break;
+            case 'roll-right':
+            case 'roll-down':
+                if (this.aiFocusedButton < buttons.length - 1) {
+                    buttons[this.aiFocusedButton].classList.remove('focused');
+                    this.aiFocusedButton++;
+                    buttons[this.aiFocusedButton].classList.add('focused');
+                }
+                break;
+            case 'press':
+                this.showFeedback(`<i data-lucide="check"></i> ${buttonTexts[this.aiFocusedButton]}`, 1500);
+                break;
+            case 'double-press':
+                this.closeAI();
+                break;
         }
     }
 
