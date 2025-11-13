@@ -129,15 +129,29 @@ body {
 }
 
 .ball-3d {
-    width: 64px;
-    height: 64px;
-    perspective: 400px;
+    width: 80px;
+    height: 80px;
+    perspective: 1000px;
     cursor: grab;
     user-select: none;
+    position: relative;
 }
 
 .ball-3d:active {
     cursor: grabbing;
+}
+
+.ball-3d::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 8px;
+    background: radial-gradient(ellipse, rgba(0,0,0,0.4), transparent);
+    filter: blur(6px);
+    z-index: -1;
 }
 
 .ball-sphere {
@@ -145,36 +159,93 @@ body {
     height: 100%;
     position: relative;
     transform-style: preserve-3d;
-    transform: rotateX(0deg) rotateY(0deg);
-    transition: transform 0.1s ease-out;
-    background: radial-gradient(circle at 30% 30%, #4a4a4c, #2a2a2c 40%, #1a1a1c);
+    transform: rotateX(-15deg) rotateY(15deg);
+    transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: rotateX(-15deg) rotateY(15deg) translateY(0px); }
+    50% { transform: rotateX(-15deg) rotateY(15deg) translateY(-3px); }
+}
+
+/* Ball core */
+.ball-sphere::before {
+    content: '';
+    position: absolute;
+    inset: 0;
     border-radius: 50%;
+    background:
+        radial-gradient(circle at 35% 30%,
+            rgba(80, 80, 85, 1) 0%,
+            rgba(60, 60, 65, 1) 20%,
+            rgba(40, 40, 45, 1) 45%,
+            rgba(30, 30, 35, 1) 70%,
+            rgba(20, 20, 25, 1) 100%
+        );
     box-shadow:
-        0 8px 16px rgba(0,0,0,0.6),
-        inset 0 -4px 8px rgba(0,0,0,0.4),
-        inset 0 2px 4px rgba(255,255,255,0.1);
+        0 10px 30px rgba(0,0,0,0.8),
+        0 5px 15px rgba(0,0,0,0.6),
+        inset 0 -8px 16px rgba(0,0,0,0.6),
+        inset 0 4px 8px rgba(255,255,255,0.15),
+        inset -4px 0 8px rgba(0,0,0,0.4),
+        inset 4px 0 8px rgba(255,255,255,0.05);
+}
+
+/* Equator ring */
+.ball-sphere::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 5%;
+    right: 5%;
+    height: 30%;
+    transform: translateY(-50%) rotateX(85deg);
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(255, 184, 0, 0.08) 45%,
+        rgba(255, 184, 0, 0.12) 50%,
+        rgba(255, 184, 0, 0.08) 55%,
+        transparent 100%
+    );
+    border-radius: 50%;
+    transform-style: preserve-3d;
 }
 
 .ball-highlight {
     position: absolute;
-    top: 15%;
-    left: 25%;
-    width: 30%;
-    height: 30%;
-    background: radial-gradient(circle, rgba(255,255,255,0.4), transparent 70%);
+    top: 18%;
+    left: 30%;
+    width: 35%;
+    height: 35%;
+    background: radial-gradient(
+        circle at 40% 40%,
+        rgba(255,255,255,0.8) 0%,
+        rgba(255,255,255,0.4) 30%,
+        transparent 70%
+    );
     border-radius: 50%;
-    filter: blur(2px);
+    filter: blur(3px);
+    transform: translateZ(1px);
+    z-index: 10;
 }
 
 .ball-shadow-inner {
     position: absolute;
-    bottom: 10%;
-    left: 10%;
-    right: 10%;
-    height: 20%;
-    background: radial-gradient(ellipse, rgba(0,0,0,0.5), transparent);
+    bottom: 15%;
+    left: 15%;
+    right: 15%;
+    height: 25%;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(0,0,0,0.7) 0%,
+        rgba(0,0,0,0.3) 40%,
+        transparent 70%
+    );
     border-radius: 50%;
-    filter: blur(4px);
+    filter: blur(5px);
+    transform: translateZ(-1px);
 }
 
 .ball-instruction {

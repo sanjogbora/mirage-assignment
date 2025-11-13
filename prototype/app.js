@@ -31,14 +31,36 @@ class TravelDevice {
         let isDragging = false;
         let currentX = 0;
         let currentY = 0;
-        let rotationX = 0;
-        let rotationY = 0;
+        let rotationX = -15;
+        let rotationY = 15;
+        let velocityX = 0;
+        let velocityY = 0;
+        let lastActionTime = 0;
+        const actionDelay = 150; // ms between actions
+
+        // Momentum animation
+        const animate = () => {
+            if (!isDragging && (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1)) {
+                velocityX *= 0.95;
+                velocityY *= 0.95;
+
+                rotationY += velocityX;
+                rotationX += velocityY;
+
+                sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+            }
+            requestAnimationFrame(animate);
+        };
+        animate();
 
         // Mouse drag
         ball.addEventListener('mousedown', (e) => {
             isDragging = true;
             currentX = e.clientX;
             currentY = e.clientY;
+            velocityX = 0;
+            velocityY = 0;
+            sphere.style.animation = 'none';
         });
 
         document.addEventListener('mousemove', (e) => {
@@ -50,29 +72,51 @@ class TravelDevice {
             currentX = e.clientX;
             currentY = e.clientY;
 
-            // Update rotation
-            rotationY += deltaX * 0.5;
-            rotationX -= deltaY * 0.5;
+            // Update rotation with momentum
+            const sensitivity = 0.5;
+            velocityX = deltaX * sensitivity;
+            velocityY = -deltaY * sensitivity;
+
+            rotationY += velocityX;
+            rotationX += velocityY;
 
             sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
 
+            // Throttle actions
+            const now = Date.now();
+            if (now - lastActionTime < actionDelay) return;
+            lastActionTime = now;
+
             // Detect direction and trigger action
+            const threshold = 8;
             if (Math.abs(deltaY) > Math.abs(deltaX)) {
-                if (deltaY > 5) this.handleBallAction('roll-down');
-                else if (deltaY < -5) this.handleBallAction('roll-up');
+                if (deltaY > threshold) this.handleBallAction('roll-down');
+                else if (deltaY < -threshold) this.handleBallAction('roll-up');
             } else {
-                if (deltaX > 5) this.handleBallAction('roll-right');
-                else if (deltaX < -5) this.handleBallAction('roll-left');
+                if (deltaX > threshold) this.handleBallAction('roll-right');
+                else if (deltaX < -threshold) this.handleBallAction('roll-left');
             }
         });
 
         document.addEventListener('mouseup', () => {
-            isDragging = false;
+            if (isDragging) {
+                isDragging = false;
+                // Resume float animation after a moment
+                setTimeout(() => {
+                    if (!isDragging) {
+                        sphere.style.animation = 'float 4s ease-in-out infinite';
+                    }
+                }, 1000);
+            }
         });
 
         // Mouse wheel
         ball.addEventListener('wheel', (e) => {
             e.preventDefault();
+
+            rotationX += e.deltaY * 0.2;
+            sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+
             if (e.deltaY > 0) {
                 this.handleBallAction('roll-down');
             } else {
@@ -81,13 +125,27 @@ class TravelDevice {
         });
 
         // Click
-        ball.addEventListener('click', () => {
-            this.handleBallAction('press');
+        ball.addEventListener('click', (e) => {
+            // Only trigger if not dragging
+            if (Math.abs(velocityX) < 1 && Math.abs(velocityY) < 1) {
+                this.handleBallAction('press');
+
+                // Visual feedback
+                sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(0.95)`;
+                setTimeout(() => {
+                    sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(1)`;
+                }, 100);
+            }
         });
 
         // Double click
         ball.addEventListener('dblclick', () => {
             this.handleBallAction('double-press');
+
+            // Reset rotation
+            rotationX = -15;
+            rotationY = 15;
+            sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
         });
     }
 
