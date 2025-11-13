@@ -34,8 +34,13 @@ class TravelDevice {
 
     showFeedback(message, duration = 2000) {
         const toast = document.getElementById('feedback-toast');
-        toast.textContent = message;
+        toast.innerHTML = message;
         toast.classList.add('show');
+
+        // Initialize Lucide icons in the toast
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
 
         setTimeout(() => {
             toast.classList.remove('show');
@@ -132,7 +137,7 @@ class TravelDevice {
         let velocityX = 0;
         let velocityY = 0;
         let lastActionTime = 0;
-        const actionDelay = 200;
+        const actionDelay = 150; // Reduced for faster response
 
         // Mouse down
         container.addEventListener('mousedown', (e) => {
@@ -154,19 +159,19 @@ class TravelDevice {
             previousMouseX = e.clientX;
             previousMouseY = e.clientY;
 
-            // Update rotation
-            this.ballRotation.y += deltaX * 0.01;
-            this.ballRotation.x += deltaY * 0.01;
+            // Update rotation with MUCH higher sensitivity
+            this.ballRotation.y += deltaX * 0.03; // Increased from 0.01 to 0.03 (3x)
+            this.ballRotation.x += deltaY * 0.03; // Increased from 0.01 to 0.03 (3x)
 
             velocityX = deltaX;
             velocityY = deltaY;
 
-            // Throttled action detection
+            // Throttled action detection with MUCH lower threshold
             const now = Date.now();
             if (now - lastActionTime < actionDelay) return;
             lastActionTime = now;
 
-            const threshold = 10;
+            const threshold = 3; // Reduced from 10 to 3 for more sensitivity
             if (Math.abs(deltaY) > Math.abs(deltaX)) {
                 if (deltaY > threshold) this.handleBallAction('roll-down');
                 else if (deltaY < -threshold) this.handleBallAction('roll-up');
@@ -182,11 +187,11 @@ class TravelDevice {
             this.isDragging = false;
         });
 
-        // Wheel
+        // Wheel with increased sensitivity
         container.addEventListener('wheel', (e) => {
             e.preventDefault();
 
-            this.ballRotation.x += e.deltaY * 0.005;
+            this.ballRotation.x += e.deltaY * 0.01; // Doubled from 0.005 to 0.01
 
             if (e.deltaY > 0) {
                 this.handleBallAction('roll-down');
@@ -307,43 +312,44 @@ class TravelDevice {
     // ================================
 
     render_home() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
             <div class="screen-content">
                 <div class="screen-title">Travel Companion</div>
                 <div class="subtitle">Your smart travel assistant</div>
 
                 <div class="card focused" data-screen="boarding">
-                    <div class="card-title">✈️ Boarding Pass</div>
+                    <div class="card-title"><i data-lucide="plane" class="card-icon"></i> Boarding Pass</div>
                     <div class="card-body">Your flight ticket ready for scanning</div>
                 </div>
 
                 <div class="card" data-screen="metro">
-                    <div class="card-title">🚇 Metro Card</div>
+                    <div class="card-title"><i data-lucide="train" class="card-icon"></i> Metro Card</div>
                     <div class="card-body">Public transit pass and balance</div>
                 </div>
 
                 <div class="card" data-screen="explore">
-                    <div class="card-title">🗺️ Explore Nearby</div>
+                    <div class="card-title"><i data-lucide="map" class="card-icon"></i> Explore Nearby</div>
                     <div class="card-body">Discover curated local spots</div>
                 </div>
 
                 <div class="card" data-screen="restaurant">
-                    <div class="card-title">🍽️ Restaurant</div>
+                    <div class="card-title"><i data-lucide="utensils" class="card-icon"></i> Restaurant</div>
                     <div class="card-body">Personalized dish recommendations</div>
                 </div>
 
                 <div class="card" data-screen="navigation">
-                    <div class="card-title">🧭 Navigation</div>
+                    <div class="card-title"><i data-lucide="navigation" class="card-icon"></i> Navigation</div>
                     <div class="card-body">Turn-by-turn walking directions</div>
                 </div>
 
                 <div class="card" data-screen="alert">
-                    <div class="card-title">⚠️ Local Alerts</div>
+                    <div class="card-title"><i data-lucide="alert-triangle" class="card-icon"></i> Local Alerts</div>
                     <div class="card-body">Important tips and safety warnings</div>
                 </div>
 
                 <div class="card" data-screen="music">
-                    <div class="card-title">🎵 Music Player</div>
+                    <div class="card-title"><i data-lucide="music" class="card-icon"></i> Music Player</div>
                     <div class="card-body">Control your soundtrack</div>
                 </div>
 
@@ -374,48 +380,49 @@ class TravelDevice {
     // ================================
 
     render_boarding() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
-            <div class="screen-content">
-                <div class="context-label">NOW • BOARDING</div>
-
-                <div style="text-align: center; margin-bottom: var(--space-6);">
+            <div class="screen-content screen-no-scroll">
+                <div>
+                    <div class="context-label">NOW • BOARDING</div>
                     <span class="pill boarding">BOARDING</span>
                 </div>
 
-                <div class="hero-text">BA 283</div>
-                <div class="hero-text" style="font-size: 42px; margin-top: 0;">SFO → LHR</div>
+                <div style="text-align: center;">
+                    <div class="hero-text" style="font-size: 36px; margin: var(--space-3) 0;">BA 283</div>
+                    <div class="hero-text" style="font-size: 32px; margin: 0;">SFO <i data-lucide="plane" style="width: 20px; height: 20px; display: inline; vertical-align: middle;"></i> LHR</div>
+                </div>
 
-                <div class="qr-container">
-                    <div class="qr-code">
-                        <div class="qr-pattern">▚▚▚</div>
+                <div class="qr-container" style="padding: var(--space-4) 0;">
+                    <div class="qr-code" style="width: 160px; height: 160px;">
+                        <div class="qr-pattern" style="font-size: 80px;">▚▚▚</div>
                     </div>
                 </div>
 
-                <div class="info-grid">
+                <div class="info-grid" style="margin: var(--space-3) 0;">
                     <div class="info-item">
                         <div class="info-label">Departure</div>
-                        <div class="info-value">17:45</div>
+                        <div class="info-value" style="font-size: 18px;">17:45</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Gate</div>
-                        <div class="info-value">52</div>
+                        <div class="info-value" style="font-size: 18px;">52</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Seat</div>
-                        <div class="info-value">24A</div>
+                        <div class="info-value" style="font-size: 18px;">24A</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Class</div>
-                        <div class="info-value">Economy</div>
+                        <div class="info-value" style="font-size: 18px;">Economy</div>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: var(--space-8); color: var(--text-secondary);">
-                    <div style="font-size: 14px; margin-bottom: var(--space-2);">Wednesday, March 15</div>
-                    <div style="font-size: 13px; color: var(--text-tertiary);">British Airways</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 13px; color: var(--text-secondary);">Wed, Mar 15 • British Airways</div>
                 </div>
 
-                <div class="hint-text">Click ball to lock screen • Double-click for home</div>
+                <div class="hint-text" style="margin-top: var(--space-3); padding-top: var(--space-3);">Click to maximize brightness • Double-click for home</div>
             </div>
         `;
     }
@@ -423,7 +430,7 @@ class TravelDevice {
     handle_boarding(action) {
         if (action === 'double-press') this.goHome();
         if (action === 'press') {
-            this.showFeedback('🔆 Screen brightness maximized');
+            this.showFeedback('<i data-lucide="sun"></i> Brightness maximized', 1500);
         }
     }
 
@@ -432,39 +439,41 @@ class TravelDevice {
     // ================================
 
     render_metro() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
-            <div class="screen-content">
-                <div class="context-label">NEARBY • METRO STATION</div>
+            <div class="screen-content screen-no-scroll">
+                <div>
+                    <div class="context-label">NEARBY • METRO STATION</div>
+                    <div class="screen-title" style="text-align: center; margin-bottom: var(--space-4); font-size: 28px;">London Underground</div>
+                </div>
 
-                <div class="screen-title" style="text-align: center;">London Underground</div>
-
-                <div class="qr-container">
-                    <div class="qr-code">
-                        <div class="qr-pattern">▚▚▚</div>
+                <div class="qr-container" style="padding: var(--space-4) 0;">
+                    <div class="qr-code" style="width: 180px; height: 180px;">
+                        <div class="qr-pattern" style="font-size: 90px;">▚▚▚</div>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin: var(--space-6) 0;">
-                    <div style="font-size: 20px; font-weight: 600; margin-bottom: var(--space-2);">
+                <div style="text-align: center; margin: var(--space-4) 0;">
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: var(--space-2);">
                         Zone 1-2 Daily Pass
                     </div>
-                    <div style="font-size: 16px; color: var(--text-secondary);">
-                        Valid until 23:59 today
+                    <div style="font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: var(--space-1);">
+                        <i data-lucide="clock" style="width: 14px; height: 14px;"></i> Valid until 23:59 today
                     </div>
                 </div>
 
-                <div class="info-grid">
+                <div class="info-grid" style="margin: var(--space-3) 0;">
                     <div class="info-item">
                         <div class="info-label">Balance</div>
-                        <div class="info-value">£8.50</div>
+                        <div class="info-value" style="font-size: 18px;">£8.50</div>
                     </div>
                     <div class="info-item">
                         <div class="info-label">Trips Today</div>
-                        <div class="info-value">4</div>
+                        <div class="info-value" style="font-size: 18px;">4</div>
                     </div>
                 </div>
 
-                <div class="hint-text">Click to refresh code • Double-click for home</div>
+                <div class="hint-text" style="padding-top: var(--space-3);">Click to refresh code • Double-click for home</div>
             </div>
         `;
     }
@@ -472,7 +481,7 @@ class TravelDevice {
     handle_metro(action) {
         if (action === 'double-press') this.goHome();
         if (action === 'press') {
-            this.showFeedback('✓ QR code refreshed');
+            this.showFeedback('<i data-lucide="refresh-cw"></i> QR code refreshed', 1500);
         }
     }
 
@@ -648,7 +657,7 @@ class TravelDevice {
                 break;
             case 'press':
                 const dishNames = ['Pappardelle al Funghi', 'Risotto alle Erbe', 'Insalata Caprese', 'Pizza Margherita'];
-                this.showFeedback(`✓ ${dishNames[this.focusedIndex]} added to order`);
+                this.showFeedback(`<i data-lucide="check"></i> ${dishNames[this.focusedIndex]} added`, 1800);
                 break;
             case 'double-press':
                 this.goHome();
@@ -661,33 +670,36 @@ class TravelDevice {
     // ================================
 
     render_navigation() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
             <div class="screen-content">
                 <div class="context-label">NAVIGATION ACTIVE</div>
 
-                <div class="nav-arrow">↰</div>
+                <div style="text-align: center; margin: var(--space-3) 0;">
+                    <i data-lucide="corner-up-left" style="width: 48px; height: 48px; color: var(--accent-yellow);"></i>
+                </div>
 
-                <div class="hero-text">Turn left</div>
-                <div style="text-align: center; font-size: 32px; font-weight: 600; color: var(--text-secondary); margin-top: var(--space-4);">
+                <div class="hero-text" style="font-size: 32px;">Turn left</div>
+                <div style="text-align: center; font-size: 24px; font-weight: 600; color: var(--text-secondary); margin-top: var(--space-2);">
                     in 120 m
                 </div>
 
-                <div style="text-align: center; font-size: 18px; color: var(--text-secondary); margin: var(--space-6) 0;">
+                <div style="text-align: center; font-size: 16px; color: var(--text-secondary); margin: var(--space-4) 0;">
                     onto Baker Street
                 </div>
 
-                <div id="map" class="map-container"></div>
+                <div id="map" class="map-container" style="height: 220px;"></div>
 
-                <div style="text-align: center;">
-                    <div style="font-size: 16px; color: var(--text-secondary); margin-bottom: var(--space-2);">
-                        4 min • 0.3 km remaining
+                <div style="text-align: center; margin-top: var(--space-4);">
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-1);">
+                        <i data-lucide="footprints" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> 4 min • 0.3 km
                     </div>
-                    <div style="font-size: 14px; color: var(--accent-yellow);">
+                    <div style="font-size: 13px; color: var(--accent-yellow);">
                         to Coffee Bar
                     </div>
                 </div>
 
-                <div class="hint-text">Double-click to end navigation</div>
+                <div class="hint-text">Roll to zoom/pan • Double-click to end</div>
             </div>
         `;
     }
@@ -754,7 +766,8 @@ class TravelDevice {
                 if (this.map && this.mapZoom < 19) {
                     this.mapZoom++;
                     this.map.setZoom(this.mapZoom);
-                    this.showFeedback(`🔍 Zoom: ${this.mapZoom}`);
+                    this.showFeedback(`<i data-lucide="zoom-in"></i> Zoom: ${this.mapZoom}`, 1500);
+                    setTimeout(() => lucide.createIcons(), 10);
                 }
                 break;
             case 'roll-down':
@@ -762,7 +775,28 @@ class TravelDevice {
                 if (this.map && this.mapZoom > 10) {
                     this.mapZoom--;
                     this.map.setZoom(this.mapZoom);
-                    this.showFeedback(`🔍 Zoom: ${this.mapZoom}`);
+                    this.showFeedback(`<i data-lucide="zoom-out"></i> Zoom: ${this.mapZoom}`, 1500);
+                    setTimeout(() => lucide.createIcons(), 10);
+                }
+                break;
+            case 'roll-left':
+                // Pan west
+                if (this.map) {
+                    const center = this.map.getCenter();
+                    const newCenter = [center.lat, center.lng - 0.002];
+                    this.map.panTo(newCenter);
+                    this.showFeedback(`<i data-lucide="arrow-left"></i> Pan West`, 1000);
+                    setTimeout(() => lucide.createIcons(), 10);
+                }
+                break;
+            case 'roll-right':
+                // Pan east
+                if (this.map) {
+                    const center = this.map.getCenter();
+                    const newCenter = [center.lat, center.lng + 0.002];
+                    this.map.panTo(newCenter);
+                    this.showFeedback(`<i data-lucide="arrow-right"></i> Pan East`, 1000);
+                    setTimeout(() => lucide.createIcons(), 10);
                 }
                 break;
             case 'double-press':
@@ -781,6 +815,7 @@ class TravelDevice {
     // ================================
 
     render_music() {
+        setTimeout(() => lucide.createIcons(), 0);
         const isPlaying = this.musicPlaying !== false;
         const currentTrack = this.currentTrack || 0;
         const tracks = [
@@ -789,21 +824,22 @@ class TravelDevice {
             { title: 'Take Me Out', artist: 'Franz Ferdinand', duration: '3:57' }
         ];
         const track = tracks[currentTrack % tracks.length];
+        const icon = isPlaying ? 'play-circle' : 'pause-circle';
 
         return `
-            <div class="screen-content">
-                <div class="screen-title">Now Playing</div>
+            <div class="screen-content screen-no-scroll">
+                <div class="screen-title" style="margin-bottom: var(--space-4);">Now Playing</div>
 
-                <div class="album-art">
-                    <div class="album-placeholder">${isPlaying ? '♪' : '⏸'}</div>
+                <div class="album-art-compact">
+                    <i data-lucide="${icon}" style="width: 64px; height: 64px; color: var(--accent-yellow);"></i>
                 </div>
 
                 <div class="track-info">
-                    <div class="track-title">${track.title}</div>
-                    <div class="track-artist">${track.artist}</div>
+                    <div class="track-title" style="font-size: 22px;">${track.title}</div>
+                    <div class="track-artist" style="font-size: 15px;">${track.artist}</div>
                 </div>
 
-                <div>
+                <div style="margin-top: var(--space-4);">
                     <div class="progress-bar">
                         <div class="progress-fill" style="width: 40%;"></div>
                     </div>
@@ -813,19 +849,16 @@ class TravelDevice {
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: var(--space-8);">
-                    <div style="font-size: 48px; color: var(--accent-yellow); margin-bottom: var(--space-4);">
-                        ${isPlaying ? '▶' : '⏸'}
-                    </div>
-                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-2);">
-                        ♪ Travel Mix
+                <div style="text-align: center; margin-top: var(--space-5);">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: var(--space-1);">
+                        <i data-lucide="list-music" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i> Travel Mix
                     </div>
                     <div style="font-size: 12px; color: var(--text-tertiary);">
                         Track ${currentTrack + 1} of ${tracks.length}
                     </div>
                 </div>
 
-                <div class="hint-text">Roll left/right to skip • Click to ${isPlaying ? 'pause' : 'play'}</div>
+                <div class="hint-text" style="margin-top: var(--space-5);">Roll left/right to skip • Click to ${isPlaying ? 'pause' : 'play'}</div>
             </div>
         `;
     }
@@ -835,17 +868,19 @@ class TravelDevice {
             case 'roll-right':
                 this.currentTrack = (this.currentTrack || 0) + 1;
                 this.renderScreen('music');
-                this.showFeedback('⏭ Next track');
+                this.showFeedback('<i data-lucide="skip-forward"></i> Next track', 1200);
                 break;
             case 'roll-left':
                 this.currentTrack = Math.max(0, (this.currentTrack || 0) - 1);
                 this.renderScreen('music');
-                this.showFeedback('⏮ Previous track');
+                this.showFeedback('<i data-lucide="skip-back"></i> Previous track', 1200);
                 break;
             case 'press':
                 this.musicPlaying = !this.musicPlaying;
                 this.renderScreen('music');
-                this.showFeedback(this.musicPlaying ? '▶ Playing' : '⏸ Paused');
+                const icon = this.musicPlaying ? 'play' : 'pause';
+                const text = this.musicPlaying ? 'Playing' : 'Paused';
+                this.showFeedback(`<i data-lucide="${icon}"></i> ${text}`, 1200);
                 break;
             case 'double-press':
                 this.goHome();
@@ -858,15 +893,18 @@ class TravelDevice {
     // ================================
 
     render_alert() {
+        setTimeout(() => lucide.createIcons(), 0);
         return `
             <div class="screen-content">
                 <div class="context-label">NEARBY • TREVI FOUNTAIN</div>
 
-                <div class="screen-title">Local Tip</div>
+                <div class="screen-title" style="margin-bottom: var(--space-4);">Local Tip</div>
 
-                <div class="alert-icon">⚠</div>
+                <div style="text-align: center; margin: var(--space-4) 0;">
+                    <i data-lucide="alert-triangle" style="width: 56px; height: 56px; color: var(--accent-yellow);"></i>
+                </div>
 
-                <div style="font-size: 20px; font-weight: 600; color: var(--accent-yellow); text-align: center; margin-bottom: var(--space-4);">
+                <div style="font-size: 19px; font-weight: 600; color: var(--accent-yellow); text-align: center; margin-bottom: var(--space-4);">
                     Watch out for coin-toss scammers
                 </div>
 
@@ -878,8 +916,8 @@ class TravelDevice {
                     </div>
                 </div>
 
-                <div style="text-align: center; font-size: 13px; color: var(--text-tertiary); font-style: italic; margin-top: var(--space-4);">
-                    — Shared by locals on r/rome
+                <div style="text-align: center; font-size: 12px; color: var(--text-tertiary); font-style: italic; margin-top: var(--space-4); display: flex; align-items: center; justify-content: center; gap: var(--space-1);">
+                    <i data-lucide="users" style="width: 12px; height: 12px;"></i> Shared by locals on r/rome
                 </div>
 
                 <div class="hint-text">Click to dismiss • Double-click for home</div>
