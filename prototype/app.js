@@ -9,6 +9,14 @@ class TravelDevice {
         this.focusedIndex = 0;
         this.screenHistory = [];
         this.map = null;
+        this.mapZoom = 15;
+
+        // Three.js ball properties
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        this.sphere = null;
+        this.ballRotation = { x: 0, y: 0 };
 
         this.init();
     }
@@ -21,74 +29,144 @@ class TravelDevice {
     }
 
     // ================================
-    // 3D BALL CONTROLS
+    // FEEDBACK TOAST
+    // ================================
+
+    showFeedback(message, duration = 2000) {
+        const toast = document.getElementById('feedback-toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+
+    // ================================
+    // 3D BALL CONTROLS WITH THREE.JS
     // ================================
 
     setup3DBall() {
-        const ball = document.getElementById('ball');
-        const sphere = ball.querySelector('.ball-sphere');
+        const container = document.getElementById('ball');
+        const width = 100;
+        const height = 100;
 
-        let isDragging = false;
-        let currentX = 0;
-        let currentY = 0;
-        let rotationX = -15;
-        let rotationY = 15;
-        let velocityX = 0;
-        let velocityY = 0;
-        let lastActionTime = 0;
-        const actionDelay = 150; // ms between actions
+        // Scene setup
+        this.scene = new THREE.Scene();
 
-        // Momentum animation
+        // Camera
+        this.camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        this.camera.position.z = 3;
+
+        // Renderer
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true
+        });
+        this.renderer.setSize(width, height);
+        this.renderer.setClearColor(0x000000, 0);
+        container.appendChild(this.renderer.domElement);
+
+        // Sphere geometry with high detail
+        const geometry = new THREE.SphereGeometry(1, 64, 64);
+
+        // Advanced material with realistic shading
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x3a3a3c,
+            metalness: 0.6,
+            roughness: 0.4,
+            envMapIntensity: 1
+        });
+
+        this.sphere = new THREE.Mesh(geometry, material);
+        this.scene.add(this.sphere);
+
+        // Equator ring
+        const ringGeometry = new THREE.TorusGeometry(1.01, 0.01, 16, 100);
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0xFFB800,
+            transparent: true,
+            opacity: 0.3
+        });
+        const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+        ring.rotation.x = Math.PI / 2;
+        this.sphere.add(ring);
+
+        // Lighting for realistic 3D appearance
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        this.scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0xffffff, 0.8);
+        pointLight1.position.set(2, 2, 3);
+        this.scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0xFFB800, 0.3);
+        pointLight2.position.set(-2, -1, 2);
+        this.scene.add(pointLight2);
+
+        // Animation loop
         const animate = () => {
-            if (!isDragging && (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1)) {
-                velocityX *= 0.95;
-                velocityY *= 0.95;
-
-                rotationY += velocityX;
-                rotationX += velocityY;
-
-                sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-            }
             requestAnimationFrame(animate);
+
+            // Apply rotation
+            this.sphere.rotation.x = this.ballRotation.x;
+            this.sphere.rotation.y = this.ballRotation.y;
+
+            // Auto-rotation when idle
+            if (!this.isDragging) {
+                this.ballRotation.y += 0.003;
+            }
+
+            this.renderer.render(this.scene, this.camera);
         };
         animate();
 
-        // Mouse drag
-        ball.addEventListener('mousedown', (e) => {
+        // Interaction setup
+        this.setupBallInteractions(container);
+    }
+
+    setupBallInteractions(container) {
+        let isDragging = false;
+        let previousMouseX = 0;
+        let previousMouseY = 0;
+        let velocityX = 0;
+        let velocityY = 0;
+        let lastActionTime = 0;
+        const actionDelay = 200;
+
+        // Mouse down
+        container.addEventListener('mousedown', (e) => {
             isDragging = true;
-            currentX = e.clientX;
-            currentY = e.clientY;
+            this.isDragging = true;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
             velocityX = 0;
             velocityY = 0;
-            sphere.style.animation = 'none';
         });
 
+        // Mouse move
         document.addEventListener('mousemove', (e) => {
             if (!isDragging) return;
 
-            const deltaX = e.clientX - currentX;
-            const deltaY = e.clientY - currentY;
+            const deltaX = e.clientX - previousMouseX;
+            const deltaY = e.clientY - previousMouseY;
 
-            currentX = e.clientX;
-            currentY = e.clientY;
+            previousMouseX = e.clientX;
+            previousMouseY = e.clientY;
 
-            // Update rotation with momentum
-            const sensitivity = 0.5;
-            velocityX = deltaX * sensitivity;
-            velocityY = -deltaY * sensitivity;
+            // Update rotation
+            this.ballRotation.y += deltaX * 0.01;
+            this.ballRotation.x += deltaY * 0.01;
 
-            rotationY += velocityX;
-            rotationX += velocityY;
+            velocityX = deltaX;
+            velocityY = deltaY;
 
-            sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
-
-            // Throttle actions
+            // Throttled action detection
             const now = Date.now();
             if (now - lastActionTime < actionDelay) return;
             lastActionTime = now;
 
-            // Detect direction and trigger action
-            const threshold = 8;
+            const threshold = 10;
             if (Math.abs(deltaY) > Math.abs(deltaX)) {
                 if (deltaY > threshold) this.handleBallAction('roll-down');
                 else if (deltaY < -threshold) this.handleBallAction('roll-up');
@@ -98,24 +176,17 @@ class TravelDevice {
             }
         });
 
+        // Mouse up
         document.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                // Resume float animation after a moment
-                setTimeout(() => {
-                    if (!isDragging) {
-                        sphere.style.animation = 'float 4s ease-in-out infinite';
-                    }
-                }, 1000);
-            }
+            isDragging = false;
+            this.isDragging = false;
         });
 
-        // Mouse wheel
-        ball.addEventListener('wheel', (e) => {
+        // Wheel
+        container.addEventListener('wheel', (e) => {
             e.preventDefault();
 
-            rotationX += e.deltaY * 0.2;
-            sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+            this.ballRotation.x += e.deltaY * 0.005;
 
             if (e.deltaY > 0) {
                 this.handleBallAction('roll-down');
@@ -125,27 +196,17 @@ class TravelDevice {
         });
 
         // Click
-        ball.addEventListener('click', (e) => {
-            // Only trigger if not dragging
-            if (Math.abs(velocityX) < 1 && Math.abs(velocityY) < 1) {
+        container.addEventListener('click', () => {
+            if (Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
                 this.handleBallAction('press');
-
-                // Visual feedback
-                sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(0.95)`;
-                setTimeout(() => {
-                    sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(1)`;
-                }, 100);
             }
         });
 
         // Double click
-        ball.addEventListener('dblclick', () => {
+        container.addEventListener('dblclick', () => {
             this.handleBallAction('double-press');
-
             // Reset rotation
-            rotationX = -15;
-            rotationY = 15;
-            sphere.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+            this.ballRotation = { x: 0, y: 0 };
         });
     }
 
@@ -249,25 +310,41 @@ class TravelDevice {
         return `
             <div class="screen-content">
                 <div class="screen-title">Travel Companion</div>
+                <div class="subtitle">Your smart travel assistant</div>
 
                 <div class="card focused" data-screen="boarding">
-                    <div class="card-title">Trips & Tickets</div>
-                    <div class="card-body">Boarding passes, metro cards, and bookings</div>
+                    <div class="card-title">✈️ Boarding Pass</div>
+                    <div class="card-body">Your flight ticket ready for scanning</div>
+                </div>
+
+                <div class="card" data-screen="metro">
+                    <div class="card-title">🚇 Metro Card</div>
+                    <div class="card-body">Public transit pass and balance</div>
                 </div>
 
                 <div class="card" data-screen="explore">
-                    <div class="card-title">Explore Nearby</div>
-                    <div class="card-body">Discover places and experiences around you</div>
+                    <div class="card-title">🗺️ Explore Nearby</div>
+                    <div class="card-body">Discover curated local spots</div>
+                </div>
+
+                <div class="card" data-screen="restaurant">
+                    <div class="card-title">🍽️ Restaurant</div>
+                    <div class="card-body">Personalized dish recommendations</div>
                 </div>
 
                 <div class="card" data-screen="navigation">
-                    <div class="card-title">Navigation</div>
-                    <div class="card-body">Walking directions to your destinations</div>
+                    <div class="card-title">🧭 Navigation</div>
+                    <div class="card-body">Turn-by-turn walking directions</div>
+                </div>
+
+                <div class="card" data-screen="alert">
+                    <div class="card-title">⚠️ Local Alerts</div>
+                    <div class="card-body">Important tips and safety warnings</div>
                 </div>
 
                 <div class="card" data-screen="music">
-                    <div class="card-title">Music</div>
-                    <div class="card-body">Control your audio on the go</div>
+                    <div class="card-title">🎵 Music Player</div>
+                    <div class="card-body">Control your soundtrack</div>
                 </div>
 
                 <div class="hint-text">Roll to browse • Click to open • Double-click for home</div>
@@ -286,7 +363,7 @@ class TravelDevice {
                 this.updateFocus(cards, 1);
                 break;
             case 'press':
-                const screens = ['boarding', 'explore', 'navigation', 'music'];
+                const screens = ['boarding', 'metro', 'explore', 'restaurant', 'navigation', 'alert', 'music'];
                 this.navigateTo(screens[this.focusedIndex]);
                 break;
         }
@@ -345,7 +422,9 @@ class TravelDevice {
 
     handle_boarding(action) {
         if (action === 'double-press') this.goHome();
-        if (action === 'press') alert('Screen locked at max brightness');
+        if (action === 'press') {
+            this.showFeedback('🔆 Screen brightness maximized');
+        }
     }
 
     // ================================
@@ -392,7 +471,9 @@ class TravelDevice {
 
     handle_metro(action) {
         if (action === 'double-press') this.goHome();
-        if (action === 'press') alert('QR code refreshed');
+        if (action === 'press') {
+            this.showFeedback('✓ QR code refreshed');
+        }
     }
 
     // ================================
@@ -566,7 +647,8 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                alert('Added to order list');
+                const dishNames = ['Pappardelle al Funghi', 'Risotto alle Erbe', 'Insalata Caprese', 'Pizza Margherita'];
+                this.showFeedback(`✓ ${dishNames[this.focusedIndex]} added to order`);
                 break;
             case 'double-press':
                 this.goHome();
@@ -618,13 +700,19 @@ class TravelDevice {
                     // London coordinates
                     this.map = L.map('map', {
                         center: [51.5074, -0.1278],
-                        zoom: 15,
+                        zoom: this.mapZoom,
                         zoomControl: false,
-                        attributionControl: false
+                        attributionControl: false,
+                        scrollWheelZoom: false,
+                        doubleClickZoom: false,
+                        touchZoom: false,
+                        boxZoom: false,
+                        keyboard: false
                     });
 
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                        maxZoom: 19
+                        maxZoom: 19,
+                        minZoom: 10
                     }).addTo(this.map);
 
                     // Add markers
@@ -660,12 +748,31 @@ class TravelDevice {
     }
 
     handle_navigation(action) {
-        if (action === 'double-press') {
-            if (this.map) {
-                this.map.remove();
-                this.map = null;
-            }
-            this.goHome();
+        switch(action) {
+            case 'roll-up':
+                // Zoom in
+                if (this.map && this.mapZoom < 19) {
+                    this.mapZoom++;
+                    this.map.setZoom(this.mapZoom);
+                    this.showFeedback(`🔍 Zoom: ${this.mapZoom}`);
+                }
+                break;
+            case 'roll-down':
+                // Zoom out
+                if (this.map && this.mapZoom > 10) {
+                    this.mapZoom--;
+                    this.map.setZoom(this.mapZoom);
+                    this.showFeedback(`🔍 Zoom: ${this.mapZoom}`);
+                }
+                break;
+            case 'double-press':
+                if (this.map) {
+                    this.map.remove();
+                    this.map = null;
+                    this.mapZoom = 15; // Reset zoom
+                }
+                this.goHome();
+                break;
         }
     }
 
@@ -674,17 +781,26 @@ class TravelDevice {
     // ================================
 
     render_music() {
+        const isPlaying = this.musicPlaying !== false;
+        const currentTrack = this.currentTrack || 0;
+        const tracks = [
+            { title: 'Blinded by the Lights', artist: 'The Streets', duration: '3:52' },
+            { title: 'Electric Feel', artist: 'MGMT', duration: '4:02' },
+            { title: 'Take Me Out', artist: 'Franz Ferdinand', duration: '3:57' }
+        ];
+        const track = tracks[currentTrack % tracks.length];
+
         return `
             <div class="screen-content">
                 <div class="screen-title">Now Playing</div>
 
                 <div class="album-art">
-                    <div class="album-placeholder">♪</div>
+                    <div class="album-placeholder">${isPlaying ? '♪' : '⏸'}</div>
                 </div>
 
                 <div class="track-info">
-                    <div class="track-title">Blinded by the Lights</div>
-                    <div class="track-artist">The Streets</div>
+                    <div class="track-title">${track.title}</div>
+                    <div class="track-artist">${track.artist}</div>
                 </div>
 
                 <div>
@@ -693,16 +809,23 @@ class TravelDevice {
                     </div>
                     <div class="time-display">
                         <span>1:24</span>
-                        <span>3:52</span>
+                        <span>${track.duration}</span>
                     </div>
                 </div>
 
-                <div style="text-align: center; margin-top: var(--space-8); font-size: 14px; color: var(--text-secondary);">
-                    <div style="margin-bottom: var(--space-2);">♪ Travel Mix</div>
-                    <div style="font-size: 12px; color: var(--text-tertiary);">Playlist • 24 songs</div>
+                <div style="text-align: center; margin-top: var(--space-8);">
+                    <div style="font-size: 48px; color: var(--accent-yellow); margin-bottom: var(--space-4);">
+                        ${isPlaying ? '▶' : '⏸'}
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: var(--space-2);">
+                        ♪ Travel Mix
+                    </div>
+                    <div style="font-size: 12px; color: var(--text-tertiary);">
+                        Track ${currentTrack + 1} of ${tracks.length}
+                    </div>
                 </div>
 
-                <div class="hint-text">Roll left/right to skip • Click to pause</div>
+                <div class="hint-text">Roll left/right to skip • Click to ${isPlaying ? 'pause' : 'play'}</div>
             </div>
         `;
     }
@@ -710,13 +833,19 @@ class TravelDevice {
     handle_music(action) {
         switch(action) {
             case 'roll-right':
-                alert('⏭ Next track');
+                this.currentTrack = (this.currentTrack || 0) + 1;
+                this.renderScreen('music');
+                this.showFeedback('⏭ Next track');
                 break;
             case 'roll-left':
-                alert('⏮ Previous track');
+                this.currentTrack = Math.max(0, (this.currentTrack || 0) - 1);
+                this.renderScreen('music');
+                this.showFeedback('⏮ Previous track');
                 break;
             case 'press':
-                alert('⏸ Paused');
+                this.musicPlaying = !this.musicPlaying;
+                this.renderScreen('music');
+                this.showFeedback(this.musicPlaying ? '▶ Playing' : '⏸ Paused');
                 break;
             case 'double-press':
                 this.goHome();
