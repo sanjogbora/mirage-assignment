@@ -138,6 +138,9 @@ class TravelDevice {
         let velocityY = 0;
         let lastActionTime = 0;
         const actionDelay = 150; // Reduced for faster response
+        let pressStartTime = 0;
+        let longPressTimeout = null;
+        let longPressTriggered = false;
 
         // Mouse down
         container.addEventListener('mousedown', (e) => {
@@ -147,6 +150,16 @@ class TravelDevice {
             previousMouseY = e.clientY;
             velocityX = 0;
             velocityY = 0;
+            pressStartTime = Date.now();
+            longPressTriggered = false;
+
+            // Set long-press timeout (800ms)
+            longPressTimeout = setTimeout(() => {
+                if (isDragging && Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
+                    longPressTriggered = true;
+                    this.handleBallAction('long-press');
+                }
+            }, 800);
         });
 
         // Mouse move
@@ -166,6 +179,11 @@ class TravelDevice {
             velocityX = deltaX;
             velocityY = deltaY;
 
+            // Cancel long-press if moving
+            if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+                clearTimeout(longPressTimeout);
+            }
+
             // Throttled action detection with MUCH lower threshold
             const now = Date.now();
             if (now - lastActionTime < actionDelay) return;
@@ -183,6 +201,7 @@ class TravelDevice {
 
         // Mouse up
         document.addEventListener('mouseup', () => {
+            clearTimeout(longPressTimeout);
             isDragging = false;
             this.isDragging = false;
         });
@@ -202,7 +221,7 @@ class TravelDevice {
 
         // Click
         container.addEventListener('click', () => {
-            if (Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
+            if (!longPressTriggered && Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
                 this.handleBallAction('press');
             }
         });
@@ -406,13 +425,14 @@ class TravelDevice {
     render_tickets() {
         setTimeout(() => lucide.createIcons(), 0);
         const activeCard = this.ticketCard || 0;
+        const translatePercent = activeCard * 33.333;
 
         return `
             <div class="screen-content screen-no-scroll">
                 <div class="context-label">YOUR TICKETS</div>
 
                 <div class="carousel-wrapper">
-                    <div class="carousel-track" style="transform: translateX(-${activeCard * 100}%);">
+                    <div class="carousel-track" style="transform: translateX(-${translatePercent}%);">
                         ${this.renderBoardingCard()}
                         ${this.renderMetroCard()}
                         ${this.renderPaymentCard()}
@@ -425,7 +445,7 @@ class TravelDevice {
                     <div class="dot ${activeCard === 2 ? 'active' : ''}"></div>
                 </div>
 
-                <div class="hint-text">Roll left/right to switch • Click to interact • Double-click for home</div>
+                <div class="hint-text">Roll left/right to switch • Click to interact • Hold for AI • Double-click for home</div>
             </div>
         `;
     }
@@ -554,8 +574,15 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                const actions = ['Brightness maximized', 'QR refreshed', 'Link copied'];
-                this.showFeedback(`<i data-lucide="check"></i> ${actions[this.ticketCard]}`, 1500);
+                const actions = [
+                    'Brightness maximized • Showing barcode on Apple Watch',
+                    'QR refreshed • Synced to your iPhone',
+                    'Payment link copied to clipboard'
+                ];
+                this.showFeedback(`<i data-lucide="check"></i> ${actions[this.ticketCard]}`, 2000);
+                break;
+            case 'long-press':
+                this.activateAIAssistant();
                 break;
             case 'double-press':
                 this.ticketCard = 0;
@@ -680,68 +707,45 @@ class TravelDevice {
 
     render_explore() {
         setTimeout(() => lucide.createIcons(), 0);
+        const spotsData = [
+            { icon: 'book-open', name: 'Old Bookshop', distance: '0.3 km', reddit: '"Hidden gem with rare first editions"', mentions: 127 },
+            { icon: 'coffee', name: 'Silo Café', distance: '0.6 km', reddit: '"Best flat white in East London, no cap"', mentions: 89 },
+            { icon: 'palette', name: 'Art Gallery', distance: '0.8 km', reddit: '"Free entry Thursdays, incredible local artists"', mentions: 56 },
+            { icon: 'shopping-bag', name: 'Vintage Shop', distance: '1.2 km', reddit: '"Found a £5 Burberry jacket here!"', mentions: 203 },
+            { icon: 'tree-pine', name: 'City Park', distance: '1.5 km', reddit: '"Perfect sunset spot, bring a blanket"', mentions: 341 },
+            { icon: 'landmark', name: 'Museum', distance: '1.8 km', reddit: '"The Egyptian exhibit is mind-blowing"', mentions: 178 },
+            { icon: 'beer', name: 'Craft Brewery', distance: '2.1 km', reddit: '"Try the IPA sampler, trust me"', mentions: 92 },
+            { icon: 'camera', name: 'Photo Walk', distance: '2.4 km', reddit: '"Street art route is Instagram gold"', mentions: 267 }
+        ];
+
         return `
             <div class="screen-content">
                 <div class="context-label">NEARBY • SHOREDITCH</div>
                 <div class="screen-title" style="margin-bottom: var(--space-6);">Spots Near You</div>
 
                 <div class="spots-grid">
-                    <div class="spot-card focused">
-                        <i data-lucide="book-open" class="spot-icon"></i>
-                        <div class="spot-name">Old Bookshop</div>
-                        <div class="spot-distance">0.3 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="coffee" class="spot-icon"></i>
-                        <div class="spot-name">Silo Café</div>
-                        <div class="spot-distance">0.6 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="palette" class="spot-icon"></i>
-                        <div class="spot-name">Art Gallery</div>
-                        <div class="spot-distance">0.8 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="shopping-bag" class="spot-icon"></i>
-                        <div class="spot-name">Vintage Shop</div>
-                        <div class="spot-distance">1.2 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="tree-pine" class="spot-icon"></i>
-                        <div class="spot-name">City Park</div>
-                        <div class="spot-distance">1.5 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="landmark" class="spot-icon"></i>
-                        <div class="spot-name">Museum</div>
-                        <div class="spot-distance">1.8 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="beer" class="spot-icon"></i>
-                        <div class="spot-name">Craft Brewery</div>
-                        <div class="spot-distance">2.1 km</div>
-                    </div>
-
-                    <div class="spot-card">
-                        <i data-lucide="camera" class="spot-icon"></i>
-                        <div class="spot-name">Photo Walk</div>
-                        <div class="spot-distance">2.4 km</div>
-                    </div>
+                    ${spotsData.map((spot, idx) => `
+                        <div class="spot-card ${idx === 0 ? 'focused' : ''}" data-spot-index="${idx}">
+                            <i data-lucide="${spot.icon}" class="spot-icon"></i>
+                            <div class="spot-name">${spot.name}</div>
+                            <div class="spot-distance">${spot.distance}</div>
+                            <div class="spot-reddit">${spot.reddit}</div>
+                            <div class="spot-mentions">
+                                <i data-lucide="message-circle" style="width: 10px; height: 10px;"></i>
+                                ${spot.mentions} mentions
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
 
-                <div class="hint-text">Roll to browse • Click for details</div>
+                <div class="hint-text">Roll to browse • Click to navigate • Hold for AI</div>
             </div>
         `;
     }
 
     handle_explore(action) {
         const spots = document.querySelectorAll('.spot-card');
+        const spotNames = ['Old Bookshop', 'Silo Café', 'Art Gallery', 'Vintage Shop', 'City Park', 'Museum', 'Craft Brewery', 'Photo Walk'];
 
         switch(action) {
             case 'roll-up':
@@ -763,6 +767,12 @@ class TravelDevice {
                 if (this.focusedIndex % 2 === 0 && this.focusedIndex < spots.length - 1) {
                     this.updateFocus(spots, 1);
                 }
+                break;
+            case 'press':
+                this.showFeedback(`<i data-lucide="navigation"></i> Navigation started to ${spotNames[this.focusedIndex]}`, 2000);
+                break;
+            case 'long-press':
+                this.activateAIAssistant();
                 break;
             case 'double-press':
                 this.goHome();
@@ -880,7 +890,10 @@ class TravelDevice {
                 break;
             case 'press':
                 const dishNames = ['Pappardelle al Funghi', 'Risotto alle Erbe', 'Insalata Caprese', 'Pizza Margherita'];
-                this.showFeedback(`<i data-lucide="check"></i> ${dishNames[this.focusedIndex]} added`, 1800);
+                this.showFeedback(`<i data-lucide="check"></i> ${dishNames[this.focusedIndex]} added • Image sent to your iPhone`, 2000);
+                break;
+            case 'long-press':
+                this.activateAIAssistant();
                 break;
             case 'double-press':
                 this.goHome();
@@ -1051,10 +1064,10 @@ class TravelDevice {
         const icon = isPlaying ? 'pause' : 'play';
 
         return `
-            <div class="screen-content screen-no-scroll">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6);">
+            <div class="screen-content screen-no-scroll music-screen">
+                <div class="music-header">
                     <div class="screen-title" style="margin: 0;">Music</div>
-                    <div style="display: flex; align-items: center; gap: var(--space-2);">
+                    <div class="volume-display">
                         <i data-lucide="volume-2" style="width: 16px; height: 16px; color: var(--text-tertiary);"></i>
                         <div class="volume-bars">
                             ${Array.from({length: 10}, (_, i) => `
@@ -1064,25 +1077,23 @@ class TravelDevice {
                     </div>
                 </div>
 
-                <div style="display: flex; gap: var(--space-6); align-items: center;">
+                <div class="music-player-compact">
                     <div class="album-square" style="background: linear-gradient(145deg, ${track.color}33, ${track.color}11);">
                         <i data-lucide="disc-3" style="width: 64px; height: 64px; color: ${track.color};"></i>
                     </div>
 
-                    <div style="flex: 1;">
-                        <div class="track-title" style="font-size: 24px; margin-bottom: var(--space-2);">${track.title}</div>
-                        <div class="track-artist" style="font-size: 16px;">${track.artist}</div>
-                        <div style="font-size: 12px; color: var(--text-tertiary); margin-top: var(--space-2);">
-                            Track ${currentTrack + 1} / ${tracks.length}
-                        </div>
+                    <div class="track-details">
+                        <div class="track-title">${track.title}</div>
+                        <div class="track-artist">${track.artist}</div>
+                        <div class="track-number">Track ${currentTrack + 1} / ${tracks.length}</div>
                     </div>
                 </div>
 
-                <div style="margin-top: var(--space-6);">
-                    <div class="progress-bar" style="height: 6px;">
+                <div class="music-progress">
+                    <div class="progress-bar">
                         <div class="progress-fill" style="width: 40%;"></div>
                     </div>
-                    <div class="time-display" style="margin-top: var(--space-2);">
+                    <div class="time-display">
                         <span>1:24</span>
                         <span>${track.duration}</span>
                     </div>
@@ -1090,20 +1101,20 @@ class TravelDevice {
 
                 <div class="music-controls">
                     <div class="music-control-hint">
-                        <i data-lucide="skip-back" style="width: 20px; height: 20px;"></i>
-                        <span>Roll Left</span>
+                        <i data-lucide="skip-back"></i>
+                        <span>Prev</span>
                     </div>
                     <div class="music-control-main">
-                        <i data-lucide="${icon}" style="width: 48px; height: 48px; color: var(--accent-yellow);"></i>
-                        <span>Click</span>
+                        <i data-lucide="${icon}" style="color: var(--accent-yellow);"></i>
+                        <span>Play</span>
                     </div>
                     <div class="music-control-hint">
-                        <i data-lucide="skip-forward" style="width: 20px; height: 20px;"></i>
-                        <span>Roll Right</span>
+                        <i data-lucide="skip-forward"></i>
+                        <span>Next</span>
                     </div>
                 </div>
 
-                <div class="hint-text">Roll up/down for volume • Double-click for home</div>
+                <div class="hint-text">Roll up/down for volume • Hold for AI • Double-click for home</div>
             </div>
         `;
     }
@@ -1112,34 +1123,216 @@ class TravelDevice {
         switch(action) {
             case 'roll-right':
                 this.currentTrack = (this.currentTrack || 0) + 1;
-                this.renderScreen('music');
+                this.updateMusicUI();
                 this.showFeedback('<i data-lucide="skip-forward"></i> Next track', 1200);
                 break;
             case 'roll-left':
                 this.currentTrack = Math.max(0, (this.currentTrack || 0) - 1);
-                this.renderScreen('music');
+                this.updateMusicUI();
                 this.showFeedback('<i data-lucide="skip-back"></i> Previous track', 1200);
                 break;
             case 'roll-up':
                 this.musicVolume = Math.min(10, (this.musicVolume || 7) + 1);
-                this.renderScreen('music');
+                this.updateMusicVolume();
                 this.showFeedback(`<i data-lucide="volume-2"></i> Volume ${this.musicVolume}`, 800);
                 break;
             case 'roll-down':
                 this.musicVolume = Math.max(0, (this.musicVolume || 7) - 1);
-                this.renderScreen('music');
+                this.updateMusicVolume();
                 this.showFeedback(`<i data-lucide="volume-${this.musicVolume === 0 ? 'x' : '1'}"></i> Volume ${this.musicVolume}`, 800);
                 break;
             case 'press':
                 this.musicPlaying = !this.musicPlaying;
-                this.renderScreen('music');
+                this.updateMusicPlayState();
                 const icon = this.musicPlaying ? 'play' : 'pause';
                 const text = this.musicPlaying ? 'Playing' : 'Paused';
                 this.showFeedback(`<i data-lucide="${icon}"></i> ${text}`, 1200);
                 break;
+            case 'long-press':
+                this.activateAIAssistant();
+                break;
             case 'double-press':
                 this.goHome();
                 break;
+        }
+    }
+
+    updateMusicVolume() {
+        const volume = this.musicVolume || 7;
+        const bars = document.querySelectorAll('.volume-bar');
+        bars.forEach((bar, i) => {
+            if (i < volume) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        });
+    }
+
+    updateMusicPlayState() {
+        const isPlaying = this.musicPlaying !== false;
+        const icon = isPlaying ? 'pause' : 'play';
+        const mainIcon = document.querySelector('.music-control-main i');
+        if (mainIcon) {
+            mainIcon.setAttribute('data-lucide', icon);
+            lucide.createIcons();
+        }
+    }
+
+    updateMusicUI() {
+        const currentTrack = this.currentTrack || 0;
+        const tracks = [
+            { title: 'Blinded by the Lights', artist: 'The Streets', duration: '3:52', color: '#FF6B6B' },
+            { title: 'Electric Feel', artist: 'MGMT', duration: '4:02', color: '#4ECDC4' },
+            { title: 'Take Me Out', artist: 'Franz Ferdinand', duration: '3:57', color: '#FFD93D' }
+        ];
+        const track = tracks[currentTrack % tracks.length];
+
+        // Update album square
+        const albumSquare = document.querySelector('.album-square');
+        if (albumSquare) {
+            albumSquare.style.background = `linear-gradient(145deg, ${track.color}33, ${track.color}11)`;
+            const albumIcon = albumSquare.querySelector('i');
+            if (albumIcon) {
+                albumIcon.style.color = track.color;
+            }
+        }
+
+        // Update track info
+        const trackTitle = document.querySelector('.track-title');
+        const trackArtist = document.querySelector('.track-artist');
+        const trackNumber = document.querySelector('.track-number');
+
+        if (trackTitle) trackTitle.textContent = track.title;
+        if (trackArtist) trackArtist.textContent = track.artist;
+        if (trackNumber) trackNumber.textContent = `Track ${currentTrack + 1} / ${tracks.length}`;
+    }
+
+    // ================================
+    // AI ASSISTANT
+    // ================================
+
+    activateAIAssistant() {
+        const contextMessages = {
+            'home': [
+                "I can help you navigate, find restaurants, or explore nearby attractions. What would you like to do?",
+                "Your calendar shows a dinner reservation at 7 PM. Would you like directions to the restaurant?",
+                "I noticed you're near several highly-rated coffee shops. Want recommendations?"
+            ],
+            'tickets': [
+                "Your flight boards in 45 minutes at Gate 52. I'll remind you 20 minutes before boarding.",
+                "I can add this boarding pass to your Apple Wallet and sync it across your devices.",
+                "Your metro pass expires at 23:59. Should I notify you about renewal options?"
+            ],
+            'explore': [
+                "Based on your interests, I recommend visiting the Old Bookshop first - it closes in 2 hours.",
+                "The City Park is perfect for sunset photography. Golden hour starts in 45 minutes.",
+                "I found 3 Reddit threads about hidden gems in this area. Want to see them?"
+            ],
+            'restaurant': [
+                "The Pappardelle al Funghi is their signature dish - it's been featured in Time Out London.",
+                "I can translate the menu to any language or explain ingredients you're allergic to.",
+                "Would you like me to take a photo of your meal and post it to your food diary?"
+            ],
+            'music': [
+                "This track is from 'Original Pirate Material' (2002) - a seminal UK garage album.",
+                "I can create a playlist based on this vibe. Want similar artists from the same era?",
+                "Lyrics for 'Blinded by the Lights' are available. Should I display them?"
+            ],
+            'navigation': [
+                "There's a faster route through the side streets - saves 3 minutes. Switch routes?",
+                "Coffee Bar is one of your saved favorites. Their flat white has a 4.8 rating.",
+                "I'll alert you about the turn 30 seconds before you need to make it."
+            ],
+            'alert': [
+                "I can help you report suspicious activity to local authorities if needed.",
+                "Based on 327 reports, this is a common scam at tourist hotspots in Rome.",
+                "Would you like me to save this tip and create a local safety guide for your trip?"
+            ]
+        };
+
+        const messages = contextMessages[this.currentScreen] || [
+            "I'm your AI travel assistant. I can help with navigation, translations, recommendations, and more.",
+            "Ask me anything about your current location or travel plans.",
+            "I have access to local knowledge, reviews, and real-time information."
+        ];
+
+        // Show AI overlay with animated typing effect
+        this.showAIOverlay(messages);
+    }
+
+    showAIOverlay(messages) {
+        const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+        // Create or get AI overlay
+        let overlay = document.getElementById('ai-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'ai-overlay';
+            overlay.className = 'ai-overlay';
+            document.getElementById('screen').appendChild(overlay);
+        }
+
+        overlay.innerHTML = `
+            <div class="ai-container">
+                <div class="ai-header">
+                    <div class="ai-avatar">
+                        <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <div class="ai-title">
+                        <div class="ai-name">AI Assistant</div>
+                        <div class="ai-status">Listening...</div>
+                    </div>
+                    <button class="ai-close" onclick="device.closeAI()">
+                        <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+                    </button>
+                </div>
+
+                <div class="ai-message">
+                    <div class="ai-typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+
+                <div class="ai-suggestions">
+                    <div class="ai-suggestion">Tell me more</div>
+                    <div class="ai-suggestion">Show alternatives</div>
+                    <div class="ai-suggestion">Navigate there</div>
+                </div>
+
+                <div class="ai-hint">Click anywhere to close • This is a demo</div>
+            </div>
+        `;
+
+        // Show overlay with animation
+        setTimeout(() => {
+            overlay.classList.add('show');
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Replace typing indicator with actual message after delay
+            setTimeout(() => {
+                const messageEl = overlay.querySelector('.ai-message');
+                messageEl.innerHTML = `<div class="ai-text">${randomMessage}</div>`;
+            }, 1500);
+        }, 50);
+
+        // Auto-close after 8 seconds
+        setTimeout(() => {
+            this.closeAI();
+        }, 8000);
+    }
+
+    closeAI() {
+        const overlay = document.getElementById('ai-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+            setTimeout(() => {
+                if (overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            }, 300);
         }
     }
 
@@ -1150,39 +1343,55 @@ class TravelDevice {
     render_alert() {
         setTimeout(() => lucide.createIcons(), 0);
         return `
-            <div class="screen-content">
+            <div class="screen-content screen-no-scroll alert-screen">
                 <div class="context-label">NEARBY • TREVI FOUNTAIN</div>
+                <div class="screen-title" style="margin-bottom: var(--space-5);">Local Tip</div>
 
-                <div class="screen-title" style="margin-bottom: var(--space-4);">Local Tip</div>
+                <div class="alert-compact">
+                    <div class="alert-icon-section">
+                        <i data-lucide="alert-triangle" class="alert-icon-large"></i>
+                    </div>
 
-                <div style="text-align: center; margin: var(--space-4) 0;">
-                    <i data-lucide="alert-triangle" style="width: 56px; height: 56px; color: var(--accent-yellow);"></i>
-                </div>
-
-                <div style="font-size: 19px; font-weight: 600; color: var(--accent-yellow); text-align: center; margin-bottom: var(--space-4);">
-                    Watch out for coin-toss scammers
-                </div>
-
-                <div class="card">
-                    <div class="card-body">
-                        People will offer to "help" you throw coins the "right way" then ask for money. It's a scam.
-                        <br/><br/>
-                        Just toss your own coin - any way works fine!
+                    <div class="alert-content">
+                        <div class="alert-title">Watch out for coin-toss scammers</div>
+                        <div class="alert-body">
+                            People will offer to "help" you throw coins the "right way" then ask for money. It's a scam. Just toss your own coin - any way works fine!
+                        </div>
+                        <div class="alert-source">
+                            <i data-lucide="users" style="width: 12px; height: 12px;"></i>
+                            <span>327 reports on r/rome</span>
+                        </div>
                     </div>
                 </div>
 
-                <div style="text-align: center; font-size: 12px; color: var(--text-tertiary); font-style: italic; margin-top: var(--space-4); display: flex; align-items: center; justify-content: center; gap: var(--space-1);">
-                    <i data-lucide="users" style="width: 12px; height: 12px;"></i> Shared by locals on r/rome
+                <div class="alert-actions">
+                    <div class="alert-action-hint">
+                        <i data-lucide="check-circle"></i>
+                        <span>Click to dismiss</span>
+                    </div>
+                    <div class="alert-action-hint">
+                        <i data-lucide="share-2"></i>
+                        <span>Hold for AI tips</span>
+                    </div>
                 </div>
 
-                <div class="hint-text">Click to dismiss • Double-click for home</div>
+                <div class="hint-text">Double-click for home</div>
             </div>
         `;
     }
 
     handle_alert(action) {
-        if (action === 'press' || action === 'double-press') {
-            this.goHome();
+        switch(action) {
+            case 'press':
+                this.showFeedback('<i data-lucide="check"></i> Alert dismissed', 1500);
+                setTimeout(() => this.goHome(), 800);
+                break;
+            case 'long-press':
+                this.activateAIAssistant();
+                break;
+            case 'double-press':
+                this.goHome();
+                break;
         }
     }
 }
