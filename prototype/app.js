@@ -305,6 +305,16 @@ class TravelDevice {
         items.forEach(item => item.classList.remove('focused'));
         this.focusedIndex = (this.focusedIndex + delta + items.length) % items.length;
         items[this.focusedIndex].classList.add('focused');
+
+        // Auto-scroll to bring focused item into view
+        const focusedItem = items[this.focusedIndex];
+        if (focusedItem) {
+            focusedItem.scrollIntoView({
+                behavior: 'smooth',
+                block: 'nearest',
+                inline: 'nearest'
+            });
+        }
     }
 
     // ================================
@@ -315,68 +325,248 @@ class TravelDevice {
         setTimeout(() => lucide.createIcons(), 0);
         return `
             <div class="screen-content">
-                <div class="screen-title">Travel Companion</div>
-                <div class="subtitle">Your smart travel assistant</div>
+                <div class="screen-title" style="margin-bottom: var(--space-8);">Travel Companion</div>
 
-                <div class="card focused" data-screen="boarding">
-                    <div class="card-title"><i data-lucide="plane" class="card-icon"></i> Boarding Pass</div>
-                    <div class="card-body">Your flight ticket ready for scanning</div>
+                <div class="home-grid">
+                    <div class="home-tile focused" data-screen="tickets">
+                        <i data-lucide="ticket" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Tickets</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="explore">
+                        <i data-lucide="compass" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Explore</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="restaurant">
+                        <i data-lucide="utensils" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Food</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="navigation">
+                        <i data-lucide="navigation" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Navigate</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="alert">
+                        <i data-lucide="shield-alert" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Alerts</div>
+                    </div>
+
+                    <div class="home-tile" data-screen="music">
+                        <i data-lucide="music" style="width: 48px; height: 48px;"></i>
+                        <div class="tile-label">Music</div>
+                    </div>
                 </div>
 
-                <div class="card" data-screen="metro">
-                    <div class="card-title"><i data-lucide="train" class="card-icon"></i> Metro Card</div>
-                    <div class="card-body">Public transit pass and balance</div>
-                </div>
-
-                <div class="card" data-screen="explore">
-                    <div class="card-title"><i data-lucide="map" class="card-icon"></i> Explore Nearby</div>
-                    <div class="card-body">Discover curated local spots</div>
-                </div>
-
-                <div class="card" data-screen="restaurant">
-                    <div class="card-title"><i data-lucide="utensils" class="card-icon"></i> Restaurant</div>
-                    <div class="card-body">Personalized dish recommendations</div>
-                </div>
-
-                <div class="card" data-screen="navigation">
-                    <div class="card-title"><i data-lucide="navigation" class="card-icon"></i> Navigation</div>
-                    <div class="card-body">Turn-by-turn walking directions</div>
-                </div>
-
-                <div class="card" data-screen="alert">
-                    <div class="card-title"><i data-lucide="alert-triangle" class="card-icon"></i> Local Alerts</div>
-                    <div class="card-body">Important tips and safety warnings</div>
-                </div>
-
-                <div class="card" data-screen="music">
-                    <div class="card-title"><i data-lucide="music" class="card-icon"></i> Music Player</div>
-                    <div class="card-body">Control your soundtrack</div>
-                </div>
-
-                <div class="hint-text">Roll to browse • Click to open • Double-click for home</div>
+                <div class="hint-text">Roll to browse • Click to open</div>
             </div>
         `;
     }
 
     handle_home(action) {
-        const cards = document.querySelectorAll('.card');
+        const tiles = document.querySelectorAll('.home-tile');
 
         switch(action) {
             case 'roll-up':
-                this.updateFocus(cards, -1);
+                // Move up (2 tiles up in grid)
+                if (this.focusedIndex >= 2) {
+                    this.updateFocus(tiles, -2);
+                }
                 break;
             case 'roll-down':
-                this.updateFocus(cards, 1);
+                // Move down (2 tiles down in grid)
+                if (this.focusedIndex < tiles.length - 2) {
+                    this.updateFocus(tiles, 2);
+                }
+                break;
+            case 'roll-left':
+                // Move left in row
+                if (this.focusedIndex % 2 === 1) {
+                    this.updateFocus(tiles, -1);
+                }
+                break;
+            case 'roll-right':
+                // Move right in row
+                if (this.focusedIndex % 2 === 0 && this.focusedIndex < tiles.length - 1) {
+                    this.updateFocus(tiles, 1);
+                }
                 break;
             case 'press':
-                const screens = ['boarding', 'metro', 'explore', 'restaurant', 'navigation', 'alert', 'music'];
+                const screens = ['tickets', 'explore', 'restaurant', 'navigation', 'alert', 'music'];
                 this.navigateTo(screens[this.focusedIndex]);
                 break;
         }
     }
 
     // ================================
-    // BOARDING PASS
+    // TICKETS CAROUSEL
+    // ================================
+
+    render_tickets() {
+        setTimeout(() => lucide.createIcons(), 0);
+        const activeCard = this.ticketCard || 0;
+        const cards = ['boarding', 'metro', 'payment'];
+
+        return `
+            <div class="screen-content screen-no-scroll">
+                <div class="context-label">YOUR TICKETS</div>
+
+                <div class="carousel-container">
+                    <div class="carousel-track" style="transform: translateX(-${activeCard * 100}%);">
+                        ${this.renderBoardingCard()}
+                        ${this.renderMetroCard()}
+                        ${this.renderPaymentCard()}
+                    </div>
+                </div>
+
+                <div class="carousel-dots">
+                    <div class="dot ${activeCard === 0 ? 'active' : ''}"></div>
+                    <div class="dot ${activeCard === 1 ? 'active' : ''}"></div>
+                    <div class="dot ${activeCard === 2 ? 'active' : ''}"></div>
+                </div>
+
+                <div class="hint-text">Roll left/right to switch • Click to interact • Double-click for home</div>
+            </div>
+        `;
+    }
+
+    renderBoardingCard() {
+        return `
+            <div class="carousel-card">
+                <div class="card-badge">
+                    <i data-lucide="plane" style="width: 16px; height: 16px;"></i>
+                    <span>Flight</span>
+                </div>
+                <div class="hero-text" style="font-size: 32px; margin: var(--space-3) 0;">BA 283</div>
+                <div style="font-size: 24px; font-weight: 600; color: var(--text-secondary); text-align: center;">
+                    SFO <i data-lucide="arrow-right" style="width: 20px; height: 20px; display: inline; vertical-align: middle;"></i> LHR
+                </div>
+
+                <div class="qr-container" style="padding: var(--space-4) 0;">
+                    <div class="qr-code" style="width: 140px; height: 140px;">
+                        <div class="qr-pattern" style="font-size: 70px;">▚▚▚</div>
+                    </div>
+                </div>
+
+                <div class="ticket-info-row">
+                    <div class="ticket-info-col">
+                        <div class="info-label">Gate</div>
+                        <div style="font-size: 24px; font-weight: 600; color: var(--accent-yellow);">52</div>
+                    </div>
+                    <div class="ticket-info-col">
+                        <div class="info-label">Seat</div>
+                        <div style="font-size: 24px; font-weight: 600;">24A</div>
+                    </div>
+                    <div class="ticket-info-col">
+                        <div class="info-label">Departure</div>
+                        <div style="font-size: 24px; font-weight: 600;">17:45</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderMetroCard() {
+        return `
+            <div class="carousel-card">
+                <div class="card-badge">
+                    <i data-lucide="train" style="width: 16px; height: 16px;"></i>
+                    <span>Metro</span>
+                </div>
+                <div style="font-size: 26px; font-weight: 600; text-align: center; margin: var(--space-3) 0;">
+                    London Underground
+                </div>
+                <div style="font-size: 16px; color: var(--text-secondary); text-align: center;">
+                    Zone 1-2 Daily Pass
+                </div>
+
+                <div class="qr-container" style="padding: var(--space-4) 0;">
+                    <div class="qr-code" style="width: 160px; height: 160px;">
+                        <div class="qr-pattern" style="font-size: 80px;">▚▚▚</div>
+                    </div>
+                </div>
+
+                <div class="ticket-info-row">
+                    <div class="ticket-info-col">
+                        <div class="info-label">Balance</div>
+                        <div style="font-size: 24px; font-weight: 600; color: var(--accent-yellow);">£8.50</div>
+                    </div>
+                    <div class="ticket-info-col">
+                        <div class="info-label">Trips Today</div>
+                        <div style="font-size: 24px; font-weight: 600;">4</div>
+                    </div>
+                    <div class="ticket-info-col">
+                        <div class="info-label">Valid Until</div>
+                        <div style="font-size: 20px; font-weight: 600;">23:59</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    renderPaymentCard() {
+        return `
+            <div class="carousel-card">
+                <div class="card-badge">
+                    <i data-lucide="scan" style="width: 16px; height: 16px;"></i>
+                    <span>Payment</span>
+                </div>
+                <div style="font-size: 26px; font-weight: 600; text-align: center; margin: var(--space-3) 0;">
+                    Scan to Pay
+                </div>
+                <div style="font-size: 15px; color: var(--text-secondary); text-align: center; max-width: 80%; margin: 0 auto;">
+                    Receive payments by sharing your QR code
+                </div>
+
+                <div class="qr-container" style="padding: var(--space-5) 0;">
+                    <div class="qr-code" style="width: 180px; height: 180px;">
+                        <div class="qr-pattern" style="font-size: 90px;">▚▚▚</div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: var(--space-4);">
+                    <div style="font-size: 13px; color: var(--text-tertiary); margin-bottom: var(--space-2);">
+                        <i data-lucide="shield-check" style="width: 14px; height: 14px; display: inline; vertical-align: middle;"></i>
+                        Secure payment link
+                    </div>
+                    <div style="font-size: 18px; font-weight: 600; color: var(--text-secondary);">
+                        pay.travel/user123
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    handle_tickets(action) {
+        this.ticketCard = this.ticketCard || 0;
+
+        switch(action) {
+            case 'roll-left':
+                if (this.ticketCard > 0) {
+                    this.ticketCard--;
+                    this.renderScreen('tickets');
+                }
+                break;
+            case 'roll-right':
+                if (this.ticketCard < 2) {
+                    this.ticketCard++;
+                    this.renderScreen('tickets');
+                }
+                break;
+            case 'press':
+                const actions = ['Brightness maximized', 'QR refreshed', 'Link copied'];
+                this.showFeedback(`<i data-lucide="check"></i> ${actions[this.ticketCard]}`, 1500);
+                break;
+            case 'double-press':
+                this.ticketCard = 0;
+                this.goHome();
+                break;
+        }
+    }
+
+    // ================================
+    // BOARDING PASS (Legacy - keeping for compatibility)
     // ================================
 
     render_boarding() {
