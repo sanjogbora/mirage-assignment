@@ -17,6 +17,21 @@ This repository contains the complete interface design for a small travel compan
 
 ---
 
+## 🎮 Interactive Prototype
+
+**NEW!** [**Try the working prototype →**](prototype/index.html)
+
+A fully functional web-based simulator demonstrating all flows and interactions. Open `prototype/index.html` in your browser to:
+
+- Experience all 7 use cases interactively
+- Test ball interactions (keyboard controls)
+- See smooth transitions and animations
+- Explore the complete design system in action
+
+[Read the prototype documentation →](prototype/README.md)
+
+---
+
 ## What's Inside
 
 ### 1. Foundation
@@ -269,7 +284,12 @@ Start with the **overview** sections of each flow document to understand the use
 ├── 07-local-alerts-flow.md
 ├── 08-navigation-flow.md
 ├── 09-music-player-flow.md
-└── 10-interaction-patterns.md
+├── 10-interaction-patterns.md
+└── prototype/                    ← Interactive prototype!
+    ├── index.html               (Open this in your browser)
+    ├── styles.css               (Complete design system)
+    ├── app.js                   (All flows & interactions)
+    └── README.md                (How to use the prototype)
 ```
 
 Each document is self-contained but references the design system and interaction patterns for consistency.

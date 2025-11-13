@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Companion Device - Interactive Prototype</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="prototype-container">
+        <!-- Device Frame -->
+        <div class="device-frame">
+            <!-- Screen Area -->
+            <div class="device-screen" id="screen">
+                <!-- Screens will be dynamically rendered here -->
+            </div>
+
+            <!-- Physical Ball (right side) -->
+            <div class="device-ball">
+                <div class="ball-visual">
+                    <div class="ball-inner"></div>
+                </div>
+                <div class="ball-label">360° Ball</div>
+            </div>
+        </div>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <h2>Ball Controls</h2>
+            <div class="controls-grid">
+                <div class="control-section">
+                    <h3>Roll</h3>
+                    <div class="control-buttons">
+                        <button class="control-btn" data-action="roll-up">↑ Up</button>
+                        <button class="control-btn" data-action="roll-down">↓ Down</button>
+                        <button class="control-btn" data-action="roll-left">← Left</button>
+                        <button class="control-btn" data-action="roll-right">→ Right</button>
+                    </div>
+                    <p class="control-hint">Or use arrow keys</p>
+                </div>
+
+                <div class="control-section">
+                    <h3>Press</h3>
+                    <div class="control-buttons">
+                        <button class="control-btn primary" data-action="press">Click</button>
+                        <button class="control-btn" data-action="double-press">Double-Click</button>
+                        <button class="control-btn" data-action="long-press">Long Press</button>
+                    </div>
+                    <p class="control-hint">Or use Space / Enter / Hold keys</p>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <h3>Status</h3>
+                <div class="status-display">
+                    <p><strong>Current Screen:</strong> <span id="current-screen">Home</span></p>
+                    <p><strong>Focused Item:</strong> <span id="focused-item">Trips & Tickets</span></p>
+                    <p><strong>Background:</strong> <span id="background-tasks">None</span></p>
+                </div>
+            </div>
+
+            <div class="demo-section">
+                <h3>Quick Demos</h3>
+                <button class="demo-btn" data-demo="boarding-pass">Boarding Pass</button>
+                <button class="demo-btn" data-demo="metro-card">Metro Card</button>
+                <button class="demo-btn" data-demo="exploration">City Exploration</button>
+                <button class="demo-btn" data-demo="restaurant">Restaurant</button>
+                <button class="demo-btn" data-demo="navigation">Navigation</button>
+                <button class="demo-btn" data-demo="music">Music Player</button>
+                <button class="demo-btn" data-demo="alert">Local Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
