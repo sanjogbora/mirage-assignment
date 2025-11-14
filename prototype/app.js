@@ -202,8 +202,19 @@ class TravelDevice {
         // Mouse up
         document.addEventListener('mouseup', () => {
             clearTimeout(longPressTimeout);
+
+            // Check if this was a click (minimal movement)
+            const totalMovement = Math.abs(velocityX) + Math.abs(velocityY);
+
+            // If minimal movement and not a long press, treat as click
+            if (!longPressTriggered && totalMovement < 5) {
+                this.handleBallAction('press');
+            }
+
             isDragging = false;
             this.isDragging = false;
+            velocityX = 0;
+            velocityY = 0;
         });
 
         // Wheel with increased sensitivity
@@ -216,13 +227,6 @@ class TravelDevice {
                 this.handleBallAction('roll-down');
             } else {
                 this.handleBallAction('roll-up');
-            }
-        });
-
-        // Click
-        container.addEventListener('click', () => {
-            if (!longPressTriggered && Math.abs(velocityX) < 2 && Math.abs(velocityY) < 2) {
-                this.handleBallAction('press');
             }
         });
 
@@ -584,12 +588,30 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                const actions = [
-                    'Brightness maximized • Showing barcode on Apple Watch',
-                    'QR refreshed • Synced to your iPhone',
-                    'Payment link copied to clipboard'
-                ];
-                this.showFeedback(`<i data-lucide="check"></i> ${actions[this.ticketCard]}`, 2000);
+                // Maximize the ticket QR code
+                const ticketTypes = ['Boarding Pass', 'Metro Card', 'Payment QR'];
+                const qrCodes = document.querySelectorAll('.qr-code');
+
+                if (qrCodes[this.ticketCard]) {
+                    const qr = qrCodes[this.ticketCard];
+                    const originalSize = qr.style.width;
+
+                    // Pulse effect to indicate maximization
+                    qr.style.transform = 'scale(1.15)';
+                    qr.style.boxShadow = '0 0 30px rgba(255, 184, 0, 0.6)';
+
+                    setTimeout(() => {
+                        qr.style.transform = 'scale(1)';
+                        qr.style.boxShadow = '';
+                    }, 800);
+
+                    const actions = [
+                        'Brightness maximized • Sent to Apple Watch',
+                        'QR refreshed • Synced to iPhone wallet',
+                        'Payment link copied • Ready to share'
+                    ];
+                    this.showFeedback(`<i data-lucide="check"></i> ${actions[this.ticketCard]}`, 2000);
+                }
                 break;
             case 'long-press':
                 this.activateAIAssistant();
@@ -779,7 +801,23 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                this.showFeedback(`<i data-lucide="navigation"></i> Navigation started to ${spotNames[this.focusedIndex]}`, 2000);
+                // Actually navigate to the selected spot
+                const selectedSpot = spotNames[this.focusedIndex];
+
+                // Visual feedback - pulse the selected card
+                if (spots[this.focusedIndex]) {
+                    spots[this.focusedIndex].style.transform = 'scale(1.08)';
+                    setTimeout(() => {
+                        spots[this.focusedIndex].style.transform = '';
+                    }, 300);
+                }
+
+                // Show feedback and navigate to navigation screen
+                this.showFeedback(`<i data-lucide="navigation"></i> Navigating to ${selectedSpot}`, 1500);
+                setTimeout(() => {
+                    this.selectedDestination = selectedSpot;
+                    this.navigateTo('navigation');
+                }, 800);
                 break;
             case 'long-press':
                 this.activateAIAssistant();
@@ -899,13 +937,36 @@ class TravelDevice {
                 }
                 break;
             case 'press':
+                // Initialize cart if needed
+                this.restaurantCart = this.restaurantCart || [];
+
                 const dishNames = ['Pappardelle al Funghi', 'Risotto alle Erbe', 'Insalata Caprese', 'Pizza Margherita'];
-                this.showFeedback(`<i data-lucide="check"></i> ${dishNames[this.focusedIndex]} added • Image sent to your iPhone`, 2000);
+                const selectedDish = dishNames[this.focusedIndex];
+
+                // Add to cart
+                this.restaurantCart.push(selectedDish);
+
+                // Visual feedback - pulse the selected item
+                if (items[this.focusedIndex]) {
+                    items[this.focusedIndex].style.transform = 'scale(1.05)';
+                    items[this.focusedIndex].style.borderColor = '#30D158';
+
+                    setTimeout(() => {
+                        items[this.focusedIndex].style.transform = '';
+                        items[this.focusedIndex].style.borderColor = '';
+                    }, 600);
+                }
+
+                // Show feedback with cart count
+                const cartCount = this.restaurantCart.length;
+                this.showFeedback(`<i data-lucide="check"></i> ${selectedDish} added • Cart: ${cartCount} item${cartCount > 1 ? 's' : ''}`, 2000);
                 break;
             case 'long-press':
                 this.activateAIAssistant();
                 break;
             case 'double-press':
+                // Clear cart and go home
+                this.restaurantCart = [];
                 this.goHome();
                 break;
         }
@@ -1046,8 +1107,14 @@ class TravelDevice {
                 }
                 break;
             case 'press':
-                this.showFeedback('<i data-lucide="navigation-2"></i> Re-centering route', 1500);
-                setTimeout(() => lucide.createIcons(), 10);
+                // Actually re-center the map to original route position
+                if (this.map) {
+                    const originalCenter = [51.5074, -0.1278]; // London coordinates
+                    this.map.setView(originalCenter, 15, { animate: true, duration: 0.8 });
+                    this.mapZoom = 15;
+                    this.showFeedback('<i data-lucide="navigation-2"></i> Route re-centered', 1500);
+                    setTimeout(() => lucide.createIcons(), 10);
+                }
                 break;
             case 'long-press':
                 this.activateAIAssistant();
@@ -1058,6 +1125,7 @@ class TravelDevice {
                     this.map = null;
                     this.mapZoom = 15; // Reset zoom
                 }
+                this.selectedDestination = null;
                 this.goHome();
                 break;
         }
