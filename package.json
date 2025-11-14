@@ -1,0 +1,19 @@
+{
+  "name": "travel-companion-device",
+  "version": "1.0.0",
+  "description": "Interactive 3D travel companion device with ball-based navigation",
+  "main": "prototype/index.html",
+  "scripts": {
+    "dev": "python3 -m http.server 8000 --directory prototype",
+    "start": "python3 -m http.server 8000 --directory prototype"
+  },
+  "keywords": [
+    "travel",
+    "companion",
+    "three.js",
+    "interactive",
+    "3d"
+  ],
+  "author": "",
+  "license": "MIT"
+}

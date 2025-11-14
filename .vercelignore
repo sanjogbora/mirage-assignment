@@ -1,0 +1,19 @@
+# Documentation files
+*.md
+!prototype/README.md
+
+# Git
+.git
+.gitignore
+
+# Design documentation
+01-design-system.md
+02-home-and-navigation.md
+03-boarding-pass-flow.md
+04-metro-card-flow.md
+05-city-exploration-flow.md
+06-restaurant-recommender-flow.md
+07-local-alerts-flow.md
+08-navigation-flow.md
+09-music-player-flow.md
+10-interaction-patterns.md
