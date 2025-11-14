@@ -164,7 +164,14 @@ class TravelDevice {
 
         // Mouse move
         document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
+            // Only drag if mouse button is actually pressed (prevents trackpad ghost movements)
+            if (!isDragging || e.buttons !== 1) {
+                if (e.buttons !== 1) {
+                    isDragging = false;
+                    this.isDragging = false;
+                }
+                return;
+            }
 
             const deltaX = e.clientX - previousMouseX;
             const deltaY = e.clientY - previousMouseY;
@@ -215,6 +222,17 @@ class TravelDevice {
             this.isDragging = false;
             velocityX = 0;
             velocityY = 0;
+        });
+
+        // Mouse leave - clean up state when mouse leaves window
+        document.addEventListener('mouseleave', () => {
+            if (isDragging) {
+                clearTimeout(longPressTimeout);
+                isDragging = false;
+                this.isDragging = false;
+                velocityX = 0;
+                velocityY = 0;
+            }
         });
 
         // Wheel with increased sensitivity
@@ -478,8 +496,8 @@ class TravelDevice {
                 </div>
 
                 <div class="qr-container" style="padding: var(--space-4) 0;">
-                    <div class="qr-code" style="width: 140px; height: 140px;">
-                        <div class="qr-pattern" style="font-size: 70px;">▚▚▚</div>
+                    <div class="qr-code" style="width: 160px; height: 160px;">
+                        <div class="qr-pattern" style="font-size: 80px;">▚▚▚</div>
                     </div>
                 </div>
 
@@ -553,9 +571,9 @@ class TravelDevice {
                     Receive payments by sharing your QR code
                 </div>
 
-                <div class="qr-container" style="padding: var(--space-5) 0;">
-                    <div class="qr-code" style="width: 180px; height: 180px;">
-                        <div class="qr-pattern" style="font-size: 90px;">▚▚▚</div>
+                <div class="qr-container" style="padding: var(--space-4) 0;">
+                    <div class="qr-code" style="width: 160px; height: 160px;">
+                        <div class="qr-pattern" style="font-size: 80px;">▚▚▚</div>
                     </div>
                 </div>
 
