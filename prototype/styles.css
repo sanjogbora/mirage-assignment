@@ -89,6 +89,13 @@ body {
     gap: var(--space-6);
 }
 
+.main-layout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-8);
+}
+
 /* ================================
    DEVICE FRAME
    ================================ */
@@ -227,6 +234,58 @@ body {
     font-size: 14px;
     font-weight: 500;
     color: var(--accent-yellow);
+}
+
+/* ================================
+   INSTRUCTIONS BOX
+   ================================ */
+
+.instructions-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--bg-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    width: 280px;
+    box-shadow: var(--shadow-md);
+}
+
+.instructions-box h3 {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent-yellow);
+    margin-bottom: var(--space-5);
+    letter-spacing: 0.3px;
+}
+
+.instruction-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.instruction-item:last-child {
+    border-bottom: none;
+}
+
+.instruction-item i {
+    width: 20px;
+    height: 20px;
+    color: var(--accent-yellow);
+    flex-shrink: 0;
+}
+
+.instruction-item span {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.instruction-item strong {
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* ================================

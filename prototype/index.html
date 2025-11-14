@@ -24,20 +24,43 @@
 </head>
 <body>
     <div class="app-container">
-        <!-- Device Frame -->
-        <div class="device-frame">
-            <!-- Screen Area -->
-            <div class="device-screen" id="screen">
-                <!-- Dynamic content -->
+        <div class="main-layout">
+            <!-- Device Frame -->
+            <div class="device-frame">
+                <!-- Screen Area -->
+                <div class="device-screen" id="screen">
+                    <!-- Dynamic content -->
 
-                <!-- Feedback Toast -->
-                <div class="feedback-toast" id="feedback-toast"></div>
+                    <!-- Feedback Toast -->
+                    <div class="feedback-toast" id="feedback-toast"></div>
+                </div>
+
+                <!-- 3D Interactive Ball -->
+                <div class="ball-container">
+                    <div class="ball-3d" id="ball"></div>
+                    <div class="ball-instruction">Drag or scroll to control</div>
+                </div>
             </div>
 
-            <!-- 3D Interactive Ball -->
-            <div class="ball-container">
-                <div class="ball-3d" id="ball"></div>
-                <div class="ball-instruction">Drag or scroll to control</div>
+            <!-- Instructions Box -->
+            <div class="instructions-box">
+                <h3>How to Interact</h3>
+                <div class="instruction-item">
+                    <i data-lucide="move"></i>
+                    <span><strong>Roll/Drag:</strong> Navigate menus</span>
+                </div>
+                <div class="instruction-item">
+                    <i data-lucide="mouse-pointer-click"></i>
+                    <span><strong>Single Click:</strong> Select item</span>
+                </div>
+                <div class="instruction-item">
+                    <i data-lucide="mouse-pointer-2"></i>
+                    <span><strong>Double Click:</strong> Go to home</span>
+                </div>
+                <div class="instruction-item">
+                    <i data-lucide="hand"></i>
+                    <span><strong>Hold (2s):</strong> Activate AI assistant</span>
+                </div>
             </div>
         </div>
 
