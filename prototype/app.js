@@ -438,8 +438,10 @@ class TravelDevice {
     render_tickets() {
         setTimeout(() => lucide.createIcons(), 0);
         const activeCard = this.ticketCard || 0;
-        // Each card takes 100% of wrapper width, so translate by 100% * card index
-        const translatePercent = activeCard * 100;
+        // Track is 300% wide with 3 cards at 33.333% each
+        // TranslateX percentages are relative to the TRACK, not wrapper
+        // So we move by 33.333% of track per card (which equals 100% of wrapper)
+        const translatePercent = activeCard * 33.333;
 
         return `
             <div class="screen-content screen-no-scroll">
