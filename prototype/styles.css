@@ -439,13 +439,13 @@ body {
 
 .carousel-track {
     display: flex;
-    width: 300%;
     transition: transform 0.5s cubic-bezier(0.4, 0.0, 0.2, 1);
     height: 100%;
 }
 
 .carousel-card {
-    width: 33.333%;
+    min-width: 100%;
+    width: 100%;
     flex-shrink: 0;
     padding: 0 var(--space-8);
     display: flex;
